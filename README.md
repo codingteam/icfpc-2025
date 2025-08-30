@@ -8,7 +8,7 @@ TBD.
 
 Prerequisites
 -------------
-- Any JDK 24 distribution. If you don't know which one to use, use [Temurin][temurin].
+- Any JDK 21 distribution. If you don't know which one to use, use [Temurin][temurin].
 - [SBT][sbt] (any recent version should suffice, it will auto-download the correct one).
 
 Build
@@ -21,6 +21,12 @@ Run
 ---
 ```console
 $ sbt run
+```
+
+Test
+---
+```console
+$ sbt test
 ```
 
 [icfpc-2025]: https://icfpcontest2025.github.io/
