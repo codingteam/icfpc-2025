@@ -8,6 +8,14 @@ TBD.
 
 Build
 -----
-TBD.
+```console
+$ sbt compile
+```
+
+Run
+---
+```console
+$ sbt run
+```
 
 [icfpc-2025]: https://icfpcontest2025.github.io/
