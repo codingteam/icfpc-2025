@@ -1,0 +1,44 @@
+name: Main
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        config:
+          - image: macos-14
+            shortName: macos
+          - image: ubuntu-24.04
+            shortName: linux
+          - image: windows-2025
+            shortName: windows
+      fail-fast: false
+    runs-on: ${{ matrix.config.image }}
+    name: build.${{ matrix.config.shortName }}
+    steps:
+      - name: Check out the sources
+        uses: actions/checkout@v5
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+          cache: 'sbt'
+
+      - name: Set up SBT
+        uses: sbt/setup-sbt@v1
+
+      - name: Build
+        run: sbt compile
+
+      - name: Test
+        run: sbt test
