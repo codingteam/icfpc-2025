@@ -26,4 +26,8 @@ object Lanternarius {
 
     vals.toSeq
   }
+
+  def lanternariuses(Nroutes: Int, length: Int): Seq[Seq[Int]] = {
+    Seq.fill(Nroutes)(lanternarius(length))
+  }
 }
