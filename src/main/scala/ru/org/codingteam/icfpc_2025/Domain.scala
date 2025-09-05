@@ -1,0 +1,26 @@
+package ru.org.codingteam.icfpc_2025
+
+import upickle.ReadWriter
+
+case class ProblemDefinition(name: String, size: Int)
+object ProblemDefinition {
+    def byName(name: String): ProblemDefinition =
+        ProblemDefinition(
+            name,
+            name match
+                case "probatio" => 3
+                case "primus" => 6
+                case "secundus" => 12
+                case "tertius" => 18
+                case "quartus" => 24
+                case "quintus" => 30
+                case _ => throw new Exception(s"Unknown problem name: $name.")
+        )
+}
+case class SolutionDefinition(
+    rooms: Seq[Int],
+    startingRoom: Int,
+    connections: Seq[ConnectionDefinition]
+) derives ReadWriter
+case class ConnectionDefinition(from: Door, to: Door) derives ReadWriter
+case class Door(room: Int, door: Int) derives ReadWriter

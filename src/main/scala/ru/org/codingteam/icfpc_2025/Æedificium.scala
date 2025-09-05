@@ -21,8 +21,15 @@ object Ædificium:
             secret
 
     private case class SelectRequest(id: String, problemName: String) derives ReadWriter
+
     private case class ExploreRequest(id: String, plans: Seq[String]) derives ReadWriter
     private case class ExploreResponse(results: Seq[Seq[Int]], queryCount: Int) derives ReadWriter
+
+    private case class GuessRequest(id: String, map: GuessMap) derives ReadWriter
+    private case class GuessMap(rooms: Seq[Int], startingRoom: Int, connections: Seq[GuessConnection]) derives ReadWriter
+    private case class GuessConnection(from: GuessDoor, to: GuessDoor) derives ReadWriter
+    private case class GuessDoor(room: Int, door: Int) derives ReadWriter
+    private case class GuessResponse(correct: Boolean) derives ReadWriter
 
     def select(problemName: String): Unit =
         val response = basicRequest
@@ -33,8 +40,6 @@ object Ædificium:
 
     def explore(plans: Seq[Seq[Int]]): Seq[Seq[Int]] =
         val request = ExploreRequest(id, plans.map(_.mkString("")))
-        println(s"Sending request: ${asJson(request)}")
-
         val response = basicRequest
             .post(uri"$baseUrl/explore")
             .body(asJson(request))
@@ -42,6 +47,26 @@ object Ædificium:
             .send(backend)
         assertSuccess(response)
         response.body.toOption.get.results
+
+    def guess(solution: SolutionDefinition): Boolean =
+        def guessDoor(door: Door) = GuessDoor(door.room, door.door)
+        val request = GuessRequest(
+            id,
+            GuessMap(
+                solution.rooms,
+                solution.startingRoom,
+                solution.connections.map { connection =>
+                    GuessConnection(guessDoor(connection.from), guessDoor(connection.to))
+                }
+            )
+        )
+        val response = basicRequest
+            .post(uri"$baseUrl/guess")
+            .body(asJson(request))
+            .response(asJson[GuessResponse])
+            .send(backend)
+        assertSuccess(response)
+        response.body.toOption.get.correct
 
     private def assertSuccess(response: Response[?]): Unit =
         if response.code.code != 200 then
