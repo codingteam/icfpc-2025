@@ -64,6 +64,15 @@ object Solver {
                 key -> relatedKeys
             }
 
+        // I did not implemented it, but someone moore clever than me can implement the following approach:
+        // 1) make a walk using routes and map of exit-door <-> possible enter-doors (eded var)
+        // 2) fill solution where possible and 100% sure that the way is correct
+        // 3) do not forget that there are also rooms
+        // 4) find all missed keys
+        // 5) determine walks to them
+        // 6) generate paths to them + finish these routes with random
+        // 7) go to 1
+
         if (knowledge.visitedRoutes.nonEmpty) return Step.StopGuessing()
 
         val plan = Seq(Lanternarius.lanternarius(problem.maxRouteLength))
