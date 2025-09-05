@@ -33,6 +33,29 @@ def do_explore():
     rs = {'results': results, 'queryCount': query_count}
     return jsonify(rs)
 
+@app.route('/setup', methods=['POST'])
+def do_setup():
+    global graph
+    rq = request.json
+    graph.setup(rq['map']['rooms'], rq['map']['startingRoom'], rq['map']['connections'])
+    return jsonify({'result': 'ok'})
+
+@app.route('/guess', methods=['POST'])
+def do_guess():
+    global graph
+    rq = request.json
+    errors = graph.guess(rq['map']['rooms'], rq['map']['startingRoom'], rq['map']['connections'])
+    rs = {'correct': len(errors) == 0, 'errors': errors}
+    return jsonify(rs)
+
+@app.route('/hack', methods=['GET'])
+def do_hack():
+    global graph
+    rs = {}
+    rs["id"] = "ID"
+    rs["map"] = graph.as_json()
+    return jsonify(rs)
+
 if __name__ == "__main__":
     app.run(debug=True)
 
