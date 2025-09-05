@@ -2,7 +2,7 @@ package ru.org.codingteam.icfpc_2025
 
 import upickle.ReadWriter
 
-case class ProblemDefinition(name: String, size: Int)
+case class ProblemDefinition(name: String, size: Int, maxRouteLength: Int)
 object ProblemDefinition {
     def byName(name: String): ProblemDefinition =
         ProblemDefinition(
@@ -14,7 +14,15 @@ object ProblemDefinition {
                 case "tertius" => 18
                 case "quartus" => 24
                 case "quintus" => 30
-                case _ => throw new Exception(s"Unknown problem name: $name.")
+                case _ => throw new Exception(s"Unknown problem name: $name."),
+            name match
+                case "probatio" => 54
+                case "primus" => 108
+                case "secundus" => 216
+                case "tertius" => 324
+                case "quartus" => 432
+                case "quintus" => 540
+                case _ => throw new Exception(s"Unknown problem name: $name."),
         )
 }
 case class SolutionDefinition(
