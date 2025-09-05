@@ -20,8 +20,10 @@ $ sbt compile
 Run
 ---
 ```console
-$ sbt run
+$ sbt "run solve <problem-name>"
 ```
+
+This will try to solve the problem with the given name.
 
 Test
 ---
