@@ -9,6 +9,8 @@ app = Flask(__name__)
 graph = MyGraph()
 query_count = 0
 
+KNOWN_PROBLEM_NAMES = dict(probatio=3, primus=6, secundus=12, tertius=18, quartus=24, quintus=30)
+
 @app.route('/select', methods=['POST'])
 def do_select():
     global graph
@@ -16,7 +18,10 @@ def do_select():
     query_count += 1
     rq = request.json
     name = rq['problemName']
-    graph.generate(int(name))
+    n_verts = KNOWN_PROBLEM_NAMES.get(name, None)
+    if n_verts is None:
+        n_verts = int(name)
+    graph.generate(n_verts)
     return jsonify({'problemName': name})
 
 @app.route('/explore', methods=['POST'])
