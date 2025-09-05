@@ -9,7 +9,7 @@ import scala.util.Using
 
 object Ædificium:
 
-    private val baseUrl = "https://31pwr5t6ij.execute-api.eu-west-2.amazonaws.com"
+    private val baseUrl = sys.env.getOrElse("SERVER_URL", "https://31pwr5t6ij.execute-api.eu-west-2.amazonaws.com")
 
     private def backend = DefaultSyncBackend()
     private val id =
