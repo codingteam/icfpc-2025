@@ -11,7 +11,7 @@ object Solver {
         Ædificium.select(problem.name)
         println(s"${problem.name} has been selected.")
 
-        var knowledge = KnowledgeHolder()
+        var knowledge = KnowledgeHolder(Vector.empty, Vector.empty)
         while (true) {
             println("Determining next step...")
             val step = nextStep(problem, knowledge)
@@ -37,7 +37,7 @@ object Solver {
     }
 
     private def nextStep(problem: ProblemDefinition, knowledge: KnowledgeHolder): Step =
-        if (knowledge.visited) return Step.StopGuessing()
+        if (knowledge.visitedRoutes.nonEmpty) return Step.StopGuessing()
 
         val plan = Seq(Lanternarius.lanternarius(problem.maxRouteLength))
         Step.ExploreStep(plan)
@@ -49,9 +49,12 @@ object Solver {
 
 }
 
-case class KnowledgeHolder(visited: Boolean = false) derives ReadWriter {
+case class KnowledgeHolder(visitedRoutes: Vector[Vector[Int]], results: Vector[Vector[Int]]) derives ReadWriter {
     def incorporateKnowledge(plans: Seq[Seq[Int]], results: Seq[Seq[Int]]): KnowledgeHolder =
-        KnowledgeHolder(visited = true)
+        KnowledgeHolder(
+            this.visitedRoutes ++ plans.map(_.toVector),
+            this.results ++ results.map(_.toVector)
+        )
 }
 
 enum Step:
