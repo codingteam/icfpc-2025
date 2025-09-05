@@ -37,7 +37,7 @@ object Solver {
     }
 
     private def nextStep(problem: ProblemDefinition, knowledge: KnowledgeHolder): Step =
-        var d = Map.empty[(Int, Int), Seq[Int]]
+        var ede = Map.empty[(Int, Int), Seq[Int]]
 
         for (j <- knowledge.visitedRoutes.indices) {
             val plan = knowledge.visitedRoutes(j)
@@ -50,14 +50,19 @@ object Solver {
 
                 val key = (enter, door)
 
-                if (!d.contains(key)) {
-                    d += (key -> Seq(exit))
-                } else if (!d(key).contains(exit)) {
-                    d += (key -> (d(key) :+ exit))
+                if (!ede.contains(key)) {
+                    ede += (key -> Seq(exit))
+                } else if (!ede(key).contains(exit)) {
+                    ede += (key -> (ede(key) :+ exit))
                 }
             }
         }
-        println(d)
+
+        val eded: Map[(Int, Int), Seq[(Int, Int)]] =
+            ede.map { case (key @ (a, b), exits) =>
+                val relatedKeys = ede.keys.filter { case (x, y) => exits.contains(x) && ede(x, y).contains(a) }.toSeq
+                key -> relatedKeys
+            }
 
         if (knowledge.visitedRoutes.nonEmpty) return Step.StopGuessing()
 
