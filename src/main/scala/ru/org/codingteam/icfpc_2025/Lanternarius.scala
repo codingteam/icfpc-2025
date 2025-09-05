@@ -11,7 +11,7 @@ object Lanternarius {
     vals += prev
 
     for (_ <- 1 until N) {
-      if (rand.nextInt(100) < 60 &&
+      if (rand.nextInt(100) < 15 &&
           (vals.size < 2 || vals(vals.size - 1) != vals(vals.size - 2))) {
         vals += prev
       } else {
