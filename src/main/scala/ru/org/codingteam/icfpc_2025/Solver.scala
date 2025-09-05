@@ -37,6 +37,28 @@ object Solver {
     }
 
     private def nextStep(problem: ProblemDefinition, knowledge: KnowledgeHolder): Step =
+        var d = Map.empty[(Int, Int), Seq[Int]]
+
+        for (j <- knowledge.visitedRoutes.indices) {
+            val plan = knowledge.visitedRoutes(j)
+            val rooms = knowledge.results(j)
+
+            for (i <- plan.indices) {
+                val door = plan(i)
+                val enter = rooms(i)
+                val exit = rooms(i + 1)
+
+                val key = (enter, door)
+
+                if (!d.contains(key)) {
+                    d += (key -> Seq(exit))
+                } else if (!d(key).contains(exit)) {
+                    d += (key -> (d(key) :+ exit))
+                }
+            }
+        }
+        println(d)
+
         if (knowledge.visitedRoutes.nonEmpty) return Step.StopGuessing()
 
         val plan = Seq(Lanternarius.lanternarius(problem.maxRouteLength))
