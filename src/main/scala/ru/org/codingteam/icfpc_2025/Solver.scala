@@ -9,7 +9,7 @@ object Solver {
     def solve(problem: ProblemDefinition): Unit = {
         println(s"Solving problem ${problem.name}.")
         Ædificium.select(problem.name)
-        println(s" ${problem.name} has been selected.")
+        println(s"${problem.name} has been selected.")
 
         var knowledge = KnowledgeHolder()
         while (true) {
@@ -30,14 +30,14 @@ object Solver {
                         val path = dump(problem, knowledge, solution)
                         throw new Exception("Incorrect solution! Analyze results in \"path\".")
                     }
-                case Step.NotAnymore =>
+                case Step.StopGuessing() =>
                     println("Don't wanna play anymore.")
                     return
         }
     }
 
     private def nextStep(problem: ProblemDefinition, knowledge: KnowledgeHolder): Step =
-        if (knowledge.visited) return Step.NotAnymore
+        if (knowledge.visited) return Step.StopGuessing()
 
         val plan = Seq(Lanternarius.lanternarius(problem.maxRouteLength))
         Step.ExploreStep(plan)
@@ -57,7 +57,7 @@ case class KnowledgeHolder(visited: Boolean = false) derives ReadWriter {
 enum Step:
     case ExploreStep(plans: Seq[Seq[Int]])
     case GuessStep(solution: SolutionDefinition)
-    case NotAnymore
+    case StopGuessing()
 
 private def explore(problem: ProblemDefinition, knowledge: KnowledgeHolder, plans: Seq[Seq[Int]]): KnowledgeHolder =
     println("Exploring the labyrinth...")
