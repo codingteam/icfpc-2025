@@ -1,6 +1,7 @@
 set(dir "${CMAKE_CURRENT_SOURCE_DIR}")
 
 list(APPEND SOURCES
+  ${dir}/random.f90
   ${dir}/main.f90
   ${dir}/task.f90
   ${dir}/door.f90
