@@ -108,7 +108,7 @@ private def explore(problem: ProblemDefinition, knowledge: KnowledgeHolder, plan
         val plan = plans(i)
         val room = visitedRooms(i)
         for (j <- plan.indices) {
-            println(s"${room(j)} ${plan(j)} ${room(j)}")
+            println(s"${room(j)} ${plan(j)} ${room(j+1)}")
         }
         println("")
     }
