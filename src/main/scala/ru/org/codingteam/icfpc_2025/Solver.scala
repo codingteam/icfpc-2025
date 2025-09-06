@@ -75,7 +75,7 @@ object Solver {
 
         if (knowledge.visitedRoutes.nonEmpty) return Step.StopGuessing()
 
-        val plan = Seq(Lanternarius.lanternarius(problem.maxRouteLength))
+        val plan = Seq(Lanternarius.shuffle12(problem.maxRouteLength))
         Step.ExploreStep(plan)
 
     private def dump(problem: ProblemDefinition, knowledge: KnowledgeHolder, solution: SolutionDefinition): Path =
