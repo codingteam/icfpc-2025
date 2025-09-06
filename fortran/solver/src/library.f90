@@ -13,6 +13,7 @@ module library_mod
         procedure :: from_file
         procedure :: add_plan
         procedure :: refine
+        procedure :: show
     end type library_t
     public :: library_t
 contains
@@ -96,5 +97,13 @@ contains
             end do
         end do
     end subroutine refine
+    subroutine show(library)
+        class(library_t), intent(in) :: library
+        integer :: i
+        do i = 1, size(library%rooms)
+            write(6, '(A,I0,A)', advance = "no") 'room #', i, ':'
+            call library%rooms(i)%show()
+        end do
+    end subroutine show
 
 end module library_mod

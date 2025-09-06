@@ -7,6 +7,7 @@ module door_mod
         logical(1), allocatable :: rooms(:)
     contains
         procedure :: init
+        procedure :: show
     end type door_t
     public :: door_t
 contains
@@ -18,4 +19,10 @@ contains
         door%room = -1
         allocate(door%rooms(n), source = .false._1)
     end subroutine init
+    subroutine show(door)
+        class(door_t), intent(in) :: door
+        character(len=40) :: fmt
+        write(fmt, '(A,I0,A)') '(I2,A,', size(door%rooms), '(L0," "))'
+        write(6, fmt, advance = "no") door%room, ' | ', door%rooms
+    end subroutine show
 end module door_mod

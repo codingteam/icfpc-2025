@@ -17,4 +17,5 @@ program icfpc2025solver
     end if
     arg = trim(arg_)
     call library%from_file(arg)
+    call library%show()
 end program icfpc2025solver
