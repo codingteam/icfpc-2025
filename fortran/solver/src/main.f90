@@ -4,6 +4,7 @@ program icfpc2025solver
     character(len=255) :: arg_
     character(len=:), allocatable :: arg
     integer :: nargs
+    type(solver_t) :: solver
     nargs = command_argument_count()
     if (nargs /= 1) then
         call get_command_argument(0, arg_)
@@ -15,4 +16,5 @@ program icfpc2025solver
         error stop "Empty filename was set"
     end if
     arg = trim(arg_)
+    call solver%init(arg)
 end program icfpc2025solver
