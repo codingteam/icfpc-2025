@@ -85,19 +85,6 @@ object Solver {
 
 }
 
-case class KnowledgeHolder(visitedRoutes: Vector[Vector[Int]], results: Vector[Vector[Int]]) derives ReadWriter {
-    def incorporateKnowledge(plans: Seq[Seq[Int]], results: Seq[Seq[Int]]): KnowledgeHolder =
-        KnowledgeHolder(
-            this.visitedRoutes ++ plans.map(_.toVector),
-            this.results ++ results.map(_.toVector)
-        )
-}
-
-enum Step:
-    case ExploreStep(plans: Seq[Seq[Int]])
-    case GuessStep(solution: SolutionDefinition)
-    case StopGuessing()
-
 private def explore(problem: ProblemDefinition, knowledge: KnowledgeHolder, plans: Seq[Seq[Int]]): KnowledgeHolder =
     println("Exploring the labyrinth...")
     println("Plans:\n" + plans.map(_.mkString(" ")).mkString(start = "- ", sep = "\n", end = ""))

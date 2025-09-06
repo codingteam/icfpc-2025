@@ -20,10 +20,14 @@ $ sbt compile
 Run
 ---
 ```console
-$ sbt -warn "run solve <problem-name>"
+$ sbt -warn "run solve <solver-name> <problem-name>"
 ```
 
-This will try to solve the problem with the given name.
+This will try to solve the problem with the given name using solver.
+
+Available solvers:
+- solver
+- sat
 
 (Add `-warn` to suppress informational output from SBT.)
 

@@ -40,3 +40,16 @@ case class SolutionDefinition(
 ) derives ReadWriter
 case class ConnectionDefinition(from: Door, to: Door) derives ReadWriter
 case class Door(room: Int, door: Int) derives ReadWriter
+
+case class KnowledgeHolder(visitedRoutes: Vector[Vector[Int]], results: Vector[Vector[Int]]) derives ReadWriter {
+    def incorporateKnowledge(plans: Seq[Seq[Int]], results: Seq[Seq[Int]]): KnowledgeHolder =
+        KnowledgeHolder(
+            this.visitedRoutes ++ plans.map(_.toVector),
+            this.results ++ results.map(_.toVector)
+        )
+}
+
+enum Step:
+    case ExploreStep(plans: Seq[Seq[Int]])
+    case GuessStep(solution: SolutionDefinition)
+    case StopGuessing()
