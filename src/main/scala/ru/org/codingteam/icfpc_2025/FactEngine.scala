@@ -11,7 +11,7 @@ private case class Route(doors: Seq[Int], roomLabels: Seq[Int]):
 
     def head: DoorDef = DoorDef(roomLabels.head, doors.head)
     def tail: Route = Route(doors.tail, roomLabels.tail)
-    def tails: Iterator[Route] = doors.zip(roomLabels).tails.map { Route(_) }
+    def tails: Iterator[Route] = doors.zip(roomLabels).tails.filter(_.nonEmpty).map { Route(_) }
 
     def compatibleWith(other: Route): Boolean =
         val steps1 = doors.zip(roomLabels)
