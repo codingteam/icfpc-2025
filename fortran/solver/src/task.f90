@@ -2,6 +2,8 @@ module task_mod
     implicit none
     private
     type :: task_t
+        character(len=:), allocatable :: API_URL
+        character(len=:), allocatable :: API_ID
         character(len=:), allocatable :: name
         integer :: n_rooms = 0
         integer :: max_length = 0
@@ -14,6 +16,7 @@ contains
     subroutine init(task, name)
         class(task_t), intent(inout) :: task
         character(len=*) :: name
+        call setup_API(task)
         task%name = trim(name)
         select case(task%name)
             case ("probatio")
@@ -74,5 +77,25 @@ contains
         else
             error stop "Unknown task kind"
         end if
+    contains
+        subroutine setup_API(task)
+            class(task_t), intent(inout) :: task
+            integer :: envvarlen, stat
+            call get_environment_variable("SERVER_URL", length = envvarlen, status = stat)
+            if (stat > 0) then
+                task%API_URL = "https://31pwr5t6ij.execute-api.eu-west-2.amazonaws.com"
+            else
+                allocate(character(len = envvarlen) :: task%API_URL)
+                call get_environment_variable("SERVER_URL", value = task%API_URL)
+            end if
+
+            call get_environment_variable("ICFPC2025ID", length = envvarlen, status = stat)
+            if (stat == 0) then
+                allocate(character(len = envvarlen) :: task%API_ID)
+                call get_environment_variable("ICFPC2025ID", value = task%API_ID)
+            else
+                error stop "Environment variable ICFPC2025ID is not set"
+            end if
+        end subroutine setup_API
     end subroutine init
 end module task_mod
