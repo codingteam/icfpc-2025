@@ -5,6 +5,7 @@ list(APPEND SOURCES
   ${dir}/door.f90
   ${dir}/room.f90
   ${dir}/library.f90
+  ${dir}/solver.f90
 )
 
 set(SOURCES ${SOURCES} PARENT_SCOPE)

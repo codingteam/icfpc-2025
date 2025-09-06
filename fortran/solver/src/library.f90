@@ -8,6 +8,7 @@ module library_mod
     contains
         procedure :: init
     end type library_t
+    public :: library_t
 contains
     subroutine init(library, n)
         class(library_t), intent(inout) :: library
