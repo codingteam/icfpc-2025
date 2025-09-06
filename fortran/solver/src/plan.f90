@@ -7,7 +7,10 @@ module plan_mod
         type(step_t), allocatable :: steps(:)
     contains
         procedure :: init
+        procedure :: inited
         procedure :: add_step
+        procedure :: plan_assignment
+        generic :: assignment(=) => plan_assignment
     end type plan_t
     public :: plan_t
 contains
@@ -18,6 +21,10 @@ contains
         plan%current = 1
         allocate(plan%steps(n_steps))
     end subroutine init
+    logical function inited(plan)
+        class(plan_t), intent(in) :: plan
+        inited = allocated(plan%steps)
+    end function inited
     subroutine add_step(plan, room_out, door_out, room_in)
         class(plan_t), intent(inout) :: plan
         integer(1), intent(in) :: room_out, door_out, room_in
@@ -26,4 +33,15 @@ contains
         plan%steps(plan%current)%room_in = room_in
         plan%current = plan%current + 1
     end subroutine add_step
+    subroutine plan_assignment(lhs, rhs)
+        class(plan_t), intent(out) :: lhs
+        class(plan_t), intent(in)  :: rhs
+        integer :: i
+        if (.not.allocated(rhs%steps)) return
+        allocate(lhs%steps(size(rhs%steps)))
+        do i = 1, size(rhs%steps)
+            lhs%steps(i) = rhs%steps(i)
+        end do
+        lhs%current = rhs%current
+    end subroutine plan_assignment
 end module plan_mod

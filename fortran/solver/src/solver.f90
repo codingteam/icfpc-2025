@@ -1,5 +1,6 @@
 module solver_mod
     use library_mod, only: library_t
+    use plan_mod, only: plan_t
     implicit none
     private
     type :: solver_t
@@ -18,7 +19,9 @@ contains
         character(len=32) :: string
 
         integer :: n_rooms, n_plans, plans_length
-        integer :: room_out, door_out, room_in
+        integer(1) :: room_out, door_out, room_in
+
+        type(plan_t) :: plan
 
         if (solver%inited) return
         solver%inited = .true._1
@@ -27,7 +30,7 @@ contains
 
         read(lu, *) n_rooms, n_plans, plans_length
 
-        call solver%library%init(n_rooms)
+        call solver%library%init(n_rooms, n_plans)
 
         do
             read(lu, '(A)', iostat=ios) string
@@ -36,10 +39,14 @@ contains
                 exit
             end if
             if (trim(string) == "sssss") then
+                if (plan%inited()) call solver%library%add_plan(plan)
+                call plan%init(plans_length)
             else if (trim(string) == "xxxxx") then
+                call solver%library%add_plan(plan)
                 exit
             else
                 read(string, *) room_out, door_out, room_in
+                call plan%add_step(room_out, door_out, room_in)
             end if
         end do
 
