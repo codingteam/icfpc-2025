@@ -8,4 +8,4 @@ package ru.org.codingteam.icfpc_2025
         case "solve" :: "sat" :: problemName :: Nil =>
             val problem = ProblemDefinition.byName(problemName)
             SatSolver.solve(problem)
-        case _ => println("Usage: sbt run \"solve <problem-name>\"")
+        case _ => println("Usage: sbt run \"solve <solver-name> <problem-name>\"")
