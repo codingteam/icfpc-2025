@@ -11,6 +11,7 @@ module plan_mod
         procedure :: add_step
         procedure :: reset
         procedure :: generate
+        procedure :: show
         procedure :: plan_assignment
         generic :: assignment(=) => plan_assignment
     end type plan_t
@@ -61,6 +62,13 @@ contains
             plan%steps(i)%door_out = steps(i)
         end do
     end subroutine generate
+    subroutine show(plan)
+        class(plan_t), intent(in) :: plan
+        integer :: i
+        do i = 1, size(plan%steps)
+            call plan%steps(i)%show()
+        end do
+    end subroutine show
     subroutine plan_assignment(lhs, rhs)
         class(plan_t), intent(out) :: lhs
         class(plan_t), intent(in)  :: rhs
