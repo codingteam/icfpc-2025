@@ -17,7 +17,7 @@ contains
         integer :: lu, ios
         character(len=32) :: string
 
-        integer :: n_rooms, n_plans
+        integer :: n_rooms, n_plans, plans_length
         integer :: room_out, door_out, room_in
 
         if (solver%inited) return
@@ -25,7 +25,7 @@ contains
 
         open(newunit = lu, file = filename, status = "old", action = "read")
 
-        read(lu, *) n_rooms, n_plans
+        read(lu, *) n_rooms, n_plans, plans_length
 
         call solver%library%init(n_rooms)
 
