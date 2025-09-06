@@ -9,6 +9,7 @@ list(APPEND SOURCES
   ${dir}/step.f90
   ${dir}/plan.f90
   ${dir}/library.f90
+  ${dir}/API.f90
   ${dir}/solver.f90
 )
 

@@ -1,6 +1,7 @@
 program icfpc2025solver
     use library_mod, only: library_t
     use task_mod, only: task_t
+    use API_mod, only: select
     implicit none
     character(len=255) :: arg_
     character(len=:), allocatable :: arg
@@ -35,5 +36,6 @@ program icfpc2025solver
             error stop 1
         end if
         call task%init(arg)
+        call select(task)
     end if
 end program icfpc2025solver
