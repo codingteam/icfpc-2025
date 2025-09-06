@@ -3,5 +3,6 @@
 /.idea/
 
 target/
+fortran/solver/build/
 
 api-secret.txt
