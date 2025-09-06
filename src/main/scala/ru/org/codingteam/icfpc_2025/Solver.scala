@@ -101,4 +101,17 @@ private def explore(problem: ProblemDefinition, knowledge: KnowledgeHolder, plan
     println("Plans:\n" + plans.map(_.mkString(" ")).mkString(start = "- ", sep = "\n", end = ""))
     val visitedRooms = Ædificium.explore(plans)
     println("Exploration results:\n" + visitedRooms.map(_.mkString(" ")).mkString(start = "- ", sep = "\n", end = ""))
+
+    // dump data for Fortran solver
+    /*
+    for (i <- plans.indices) {
+        val plan = plans(i)
+        val room = visitedRooms(i)
+        for (j <- plan.indices) {
+            println(s"${room(j)} ${plan(j)} ${room(j)}")
+        }
+        println("")
+    }
+    */
+
     knowledge.incorporateKnowledge(plans, visitedRooms)
