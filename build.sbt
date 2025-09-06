@@ -6,3 +6,5 @@ libraryDependencies ++= Seq(
 )
 
 scalacOptions ++= Seq("-explain")
+
+libraryDependencies += "org.scala-graph" %% "graph-core" % "2.0.3"
