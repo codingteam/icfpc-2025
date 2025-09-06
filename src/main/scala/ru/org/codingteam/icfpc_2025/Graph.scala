@@ -8,14 +8,14 @@ import scalax.collection.OuterImplicits.anyToNode
 import upickle.ReadWriter
 
 abstract class MyVertex()
-case class RoomVertex(uid : Int, label : Int) extends MyVertex derives ReadWriter
+case class RoomVertex(uid : Int, label : Option[Int]) extends MyVertex derives ReadWriter
 case class DoorVertex(roomUid : Int, idx : Int) extends MyVertex derives ReadWriter
 
 class MyGraph private (val graph : Graph[MyVertex, UnDiEdge[MyVertex]],
         val rooms : Seq[RoomVertex],
         val doors : Map[Int,Seq[DoorVertex]]) {
 
-    def addRoom(uid : Int, label : Int) =
+    def addRoom(uid : Int, label : Option[Int] = None) =
         val room = RoomVertex(uid, label)
         val newDoors = (0 to 5).map(i =>
                 DoorVertex(uid, i)
@@ -27,7 +27,7 @@ class MyGraph private (val graph : Graph[MyVertex, UnDiEdge[MyVertex]],
             doors ++ Map(room.uid -> newDoors)
         )
 
-    def setRoomLabel(uid : Int, newLabel : Int) =
+    def setRoomLabel(uid : Int, newLabel : Option[Int]) =
         val neighbors = graph.get(rooms(uid)).neighbors.map(_.outer)
         val graphWithoutOldRoom = graph.excl(rooms(uid))
         val newRoom = RoomVertex(uid, newLabel)
@@ -53,11 +53,21 @@ class MyGraph private (val graph : Graph[MyVertex, UnDiEdge[MyVertex]],
             edge.node1
         }
 
+    def findUnlabeledRooms =
+        rooms.filter(r => r.label == None)
+
     def findRoomsByLabel(label : Int) =
-        rooms.filter(r => r.label == label)
+        rooms.filter(r => r.label == Some(label))
 
     def findFreeDoors(roomUid : Int) =
         doors(roomUid).filter(d => graph.get(d).degree == 1)
+
+    def findFirstFreeDoor(roomUid : Int) : Option[DoorVertex] =
+        val freeDoors = findFreeDoors(roomUid)
+        if (freeDoors.length == 0)
+            None
+        else
+            Some(freeDoors(0))
 
     def adjacentDoor(door : DoorVertex) : Option[DoorVertex] =
         val innerVertex = graph.get(door)
@@ -73,6 +83,10 @@ class MyGraph private (val graph : Graph[MyVertex, UnDiEdge[MyVertex]],
             case Some(otherDoor) => Some(rooms(otherDoor.roomUid))
         }
 
+    def findAllDoorPassages : Set[(DoorVertex, DoorVertex)] =
+      graph.edges.toOuter.filter(e => e.node1.isInstanceOf[DoorVertex] && e.node2.isInstanceOf[DoorVertex])
+          .map(e => (e.node1.asInstanceOf[DoorVertex], e.node2.asInstanceOf[DoorVertex]))
+
 }
 
 object MyGraph {
@@ -80,7 +94,7 @@ object MyGraph {
 
     def apply(nRooms : Int) =
         val empty = new MyGraph(Graph(), Seq(), Map.empty)
-        (0 until nRooms).foldRight(empty)((i, acc) => acc.addRoom(i, 0))
+        (0 until nRooms).foldRight(empty)((i, acc) => acc.addRoom(i))
 }
 
 
