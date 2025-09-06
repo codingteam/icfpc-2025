@@ -9,6 +9,7 @@ module plan_mod
         procedure :: init
         procedure :: inited
         procedure :: add_step
+        procedure :: reset
         procedure :: plan_assignment
         generic :: assignment(=) => plan_assignment
     end type plan_t
@@ -33,6 +34,10 @@ contains
         plan%steps(plan%current)%room_in = room_in
         plan%current = plan%current + 1
     end subroutine add_step
+    subroutine reset(plan)
+        class(plan_t), intent(inout) :: plan
+        plan%current = 1
+    end subroutine reset
     subroutine plan_assignment(lhs, rhs)
         class(plan_t), intent(out) :: lhs
         class(plan_t), intent(in)  :: rhs
