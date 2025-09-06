@@ -37,32 +37,43 @@ object Solver {
     }
 
     private def nextStep(problem: ProblemDefinition, knowledge: KnowledgeHolder): Step =
-        var ede = Map.empty[(Int, Int), Seq[Int]]
+        // (room, door in that room) -> (possible destination rooms)
+        var roomAndDoorToPossibleRooms = Map.empty[(Int, Int), Seq[Int]]
 
         for (j <- knowledge.visitedRoutes.indices) {
             val plan = knowledge.visitedRoutes(j)
-            val rooms = knowledge.results(j)
+            val rooms = knowledge.visitedRooms(j)
 
             for (i <- plan.indices) {
                 val door = plan(i)
-                val enter = rooms(i)
-                val exit = rooms(i + 1)
+                val roomFrom = rooms(i)
+                val roomTo = rooms(i + 1)
 
-                val key = (enter, door)
+                val key = (roomFrom, door)
 
-                if (!ede.contains(key)) {
-                    ede += (key -> Seq(exit))
-                } else if (!ede(key).contains(exit)) {
-                    ede += (key -> (ede(key) :+ exit))
+                if (!roomAndDoorToPossibleRooms.contains(key)) {
+                    roomAndDoorToPossibleRooms += (key -> Seq(roomTo))
+                } else if (!roomAndDoorToPossibleRooms(key).contains(roomTo)) {
+                    roomAndDoorToPossibleRooms += (key -> (roomAndDoorToPossibleRooms(key) :+ roomTo))
                 }
             }
         }
+        //for ((key, roomsTo) <- roomAndDoorToPossibleRooms)
+        //    println(s"$key => $roomsTo")
 
-        val eded: Map[(Int, Int), Seq[(Int, Int)]] =
-            ede.map { case (key @ (a, b), exits) =>
-                val relatedKeys = ede.keys.filter { case (x, y) => exits.contains(x) && ede(x, y).contains(a) }.toSeq
-                key -> relatedKeys
-            }
+        // (room) -> (room from which we could come into room in key, door in source room)
+        var roomToPossibleRoomAndDoorFrom = Map.empty[Int, Set[(Int,Int)]]
+        for ((key, roomsTo) <- roomAndDoorToPossibleRooms) {
+           val roomFrom = key._1
+           val relatedKeys : Set[(Int,Int)] = roomAndDoorToPossibleRooms.keys.filter { case (room, door) => roomsTo.contains(room) && roomAndDoorToPossibleRooms(room, door).contains(roomFrom) }.toSet
+           if (!roomToPossibleRoomAndDoorFrom.contains(roomFrom)) {
+               roomToPossibleRoomAndDoorFrom += (roomFrom -> relatedKeys)
+           } else {
+               roomToPossibleRoomAndDoorFrom += (roomFrom -> (roomToPossibleRoomAndDoorFrom(roomFrom) ++ relatedKeys))
+           }
+        }
+        //for ((key, value) <- roomToPossibleRoomAndDoorFrom)
+        //    println(s"$key => $value")
 
         // I did not implemented it, but someone moore clever than me can implement the following approach:
         // 1) make a walk using routes and map of exit-door <-> possible enter-doors (eded var)
@@ -88,6 +99,6 @@ object Solver {
 private def explore(problem: ProblemDefinition, knowledge: KnowledgeHolder, plans: Seq[Seq[Int]]): KnowledgeHolder =
     println("Exploring the labyrinth...")
     println("Plans:\n" + plans.map(_.mkString(" ")).mkString(start = "- ", sep = "\n", end = ""))
-    val results = Ædificium.explore(plans)
-    println("Exploration results:\n" + results.map(_.mkString(" ")).mkString(start = "- ", sep = "\n", end = ""))
-    knowledge.incorporateKnowledge(plans, results)
+    val visitedRooms = Ædificium.explore(plans)
+    println("Exploration results:\n" + visitedRooms.map(_.mkString(" ")).mkString(start = "- ", sep = "\n", end = ""))
+    knowledge.incorporateKnowledge(plans, visitedRooms)

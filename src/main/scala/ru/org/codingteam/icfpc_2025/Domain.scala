@@ -41,11 +41,11 @@ case class SolutionDefinition(
 case class ConnectionDefinition(from: Door, to: Door) derives ReadWriter
 case class Door(room: Int, door: Int) derives ReadWriter
 
-case class KnowledgeHolder(visitedRoutes: Vector[Vector[Int]], results: Vector[Vector[Int]]) derives ReadWriter {
+case class KnowledgeHolder(visitedRoutes: Vector[Vector[Int]], visitedRooms: Vector[Vector[Int]]) derives ReadWriter {
     def incorporateKnowledge(plans: Seq[Seq[Int]], results: Seq[Seq[Int]]): KnowledgeHolder =
         KnowledgeHolder(
             this.visitedRoutes ++ plans.map(_.toVector),
-            this.results ++ results.map(_.toVector)
+            this.visitedRooms ++ visitedRooms.map(_.toVector)
         )
 }
 
