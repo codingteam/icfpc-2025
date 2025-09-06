@@ -10,6 +10,7 @@ module library_mod
         integer :: current_plan = 1
     contains
         procedure :: init
+        procedure :: from_file
         procedure :: add_plan
     end type library_t
     public :: library_t
@@ -33,5 +34,46 @@ contains
         library%plans(library%current_plan) = plan
         library%current_plan = library%current_plan + 1
     end subroutine add_plan
+    subroutine from_file(library, filename)
+        class(library_t), intent(inout) :: library
+        character(len=*), intent(in) :: filename
+
+        integer :: lu, ios
+        character(len=32) :: string
+
+        integer :: n_rooms, n_plans, plans_length
+        integer(1) :: room_out, door_out, room_in
+
+        type(plan_t) :: plan
+
+        if (library%inited) return
+
+        open(newunit = lu, file = filename, status = "old", action = "read")
+
+        read(lu, *) n_rooms, n_plans, plans_length
+
+        call library%init(n_rooms, n_plans)
+
+        do
+            read(lu, '(A)', iostat=ios) string
+            if (ios /= 0) then
+                print *, "Badly formatted file"
+                exit
+            end if
+            if (trim(string) == "sssss") then
+                if (plan%inited()) call library%add_plan(plan)
+                call plan%init(plans_length)
+            else if (trim(string) == "xxxxx") then
+                call library%add_plan(plan)
+                exit
+            else
+                read(string, *) room_out, door_out, room_in
+                call plan%add_step(room_out, door_out, room_in)
+            end if
+        end do
+
+        close(lu)
+
+    end subroutine from_file
 
 end module library_mod
