@@ -1,13 +1,8 @@
 program icfpc2025solver
-    use library_mod, only: library_t
-    use task_mod, only: task_t
-    use API_mod, only: select
     implicit none
     character(len=255) :: arg_
     character(len=:), allocatable :: arg
     integer :: nargs
-    type(library_t) :: library
-    type(task_t) :: task
     nargs = command_argument_count()
     if (nargs /= 1 .and. nargs /= 2) then
         call get_command_argument(0, arg_)
@@ -27,15 +22,22 @@ program icfpc2025solver
             error stop "Empty filename was set"
         end if
         arg = trim(arg_)
-        call library%from_file(arg)
-        call library%show()
+        block
+            use library_mod, only: library_t
+            type(library_t) :: library
+            call library%from_file(arg)
+            call library%show()
+        end block
     else
         if (nargs /= 1) then
             write (6, *) "Use: " // arg // " file <file to solve>"
             write (6, *) "  or " // arg // " <taskname>"
             error stop 1
         end if
-        call task%init(arg)
-        call select(task)
+        block
+            use solver_mod, only: solver_t
+            type(solver_t) :: solver
+            call solver%init(arg)
+        end block
     end if
 end program icfpc2025solver

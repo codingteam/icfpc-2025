@@ -1,8 +1,9 @@
 module API_mod
     use task_mod, only: task_t
+    use plan_mod, only: plan_t
     implicit none
     private
-    public :: select
+    public :: select, explore
 contains
     subroutine select(task)
         type(task_t), intent(in) :: task
@@ -35,4 +36,37 @@ contains
         close(lu, status = "delete")
 
     end subroutine select
+    subroutine explore(task, plans)
+        type(task_t), intent(in) :: task
+        type(plan_t), intent(inout) :: plans(:)
+
+        character(len=:), allocatable :: command, header, request, data, data_plans
+        character(len=1) :: tmp
+
+        integer :: lu, i, j
+
+        open(newunit = lu, file = "explore", status = "unknown")
+        close(lu, status = "delete")
+
+        header = ' --header "Content-Type: application/json" '
+        request = ' --request POST '
+
+        data_plans = '['
+        do i = 1, size(plans)
+            data_plans = data_plans // '"'
+            do j = 1, size(plans(i)%steps)
+                write(tmp, '(I0)') plans(i)%steps(j)%door_out
+                data_plans = data_plans // tmp
+            end do
+            data_plans = data_plans // '"'
+            if (i /= size(plans)) data_plans = data_plans // ', '
+        end do
+        data_plans = data_plans // ']'
+
+        data = ' --data ''{ "id": "' // task%API_ID // '", "plans": ' // data_plans // ' }'' '
+
+        command = 'curl -s ' // header // request // data // task%API_URL // '/explore > explore'
+        call execute_command_line(command, wait=.true.)
+
+    end subroutine explore
 end module API_mod
