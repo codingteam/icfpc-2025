@@ -71,11 +71,24 @@ class MyGraph private (val graph : Graph[MyVertex, UnDiEdge[MyVertex]],
 
     def adjacentDoor(door : DoorVertex) : Option[DoorVertex] =
         val innerVertex = graph.get(door)
-        val res = (innerVertex.neighbors.map(_.outer) - rooms(door.roomUid)).toSeq
-        if (res.length == 0)
+        val doorToDoorEdges = innerVertex.edges.flatMap(e =>
+                if (e.node1.outer.isInstanceOf[RoomVertex] || e.node2.outer.isInstanceOf[RoomVertex])
+                    None
+                else
+                    Some(e)
+            ).toSeq
+        if (doorToDoorEdges.length == 0)
             None
         else
-            Some(res(0).asInstanceOf[DoorVertex])
+            val edge = doorToDoorEdges(0)
+            val node1 = edge.node1.outer.asInstanceOf[DoorVertex]
+            val node2 = edge.node2.outer.asInstanceOf[DoorVertex]
+            if (node1 == door && node2 == door)
+                Some(door)
+            else if (node1 != door)
+                Some(node1)
+            else
+                Some(node2)
 
     def adjacentRoom(door : DoorVertex) : Option[RoomVertex] =
         adjacentDoor(door) match {
@@ -83,9 +96,30 @@ class MyGraph private (val graph : Graph[MyVertex, UnDiEdge[MyVertex]],
             case Some(otherDoor) => Some(rooms(otherDoor.roomUid))
         }
 
+    def neighborRooms(roomUid : Int): Set[RoomVertex] =
+        val innerVertex = graph.get(rooms(roomUid))
+        innerVertex.neighbors.map(_.outer).flatMap(door => adjacentRoom(door.asInstanceOf[DoorVertex])).toSet
+
+    def neighborRoomsByDoor(roomUid : Int): Map[Int, RoomVertex] =
+        val innerVertex = graph.get(rooms(roomUid))
+        val pairs = innerVertex.neighbors.map(_.outer).flatMap(vertex =>
+                val door = vertex.asInstanceOf[DoorVertex]
+                adjacentRoom(door) match {
+                    case None => Seq()
+                    case Some(room) => Seq(door.idx -> room)
+                }).toSeq
+        Map(pairs*)
+
     def findAllDoorPassages : Set[(DoorVertex, DoorVertex)] =
       graph.edges.toOuter.filter(e => e.node1.isInstanceOf[DoorVertex] && e.node2.isInstanceOf[DoorVertex])
           .map(e => (e.node1.asInstanceOf[DoorVertex], e.node2.asInstanceOf[DoorVertex]))
+
+    def toSolution: SolutionDefinition =
+        val solRooms = rooms.map(_.label.get)
+        val connections = findAllDoorPassages.map((door1, door2) =>
+                ConnectionDefinition(Door(door1.roomUid, door1.idx), Door(door2.roomUid, door2.idx))
+                ).toSeq
+        SolutionDefinition(solRooms, 0, connections)
 
 }
 

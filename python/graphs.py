@@ -79,10 +79,10 @@ class MyGraph:
         if errors:
             return errors
         if starting_room != 0:
-            errors.append("Starting room index {starting_room} is not equal to actual 0")
+            errors.append(f"Starting room index {starting_room} is not equal to actual 0")
             return errors
         if len(connections) != self.graph.num_edges():
-            errors.append("Number of edges {len(connections)} is not equal to actual {self.graph.num_edges()}")
+            errors.append(f"Number of edges {len(connections)} is not equal to actual {self.graph.num_edges()}")
             return errors
         for connection in connections:
             f = connection['from']

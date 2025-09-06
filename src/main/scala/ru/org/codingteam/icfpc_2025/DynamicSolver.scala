@@ -1,36 +1,113 @@
 package ru.org.codingteam.icfpc_2025
 
+import upickle.ReadWriter
+
+abstract class SolverStepResult() {
+    def get : MyGraph =
+        throw Exception("Result graph was not provided")
+}
+case class StepApplied(graph : MyGraph, nextDoor : DoorVertex) extends SolverStepResult {
+    override def get : MyGraph = graph
+}
+case class TargetDoorsExhausted() extends SolverStepResult derives ReadWriter
+case class TargetRoomsExhausted() extends SolverStepResult derives ReadWriter
+case class Contradiction() extends SolverStepResult derives ReadWriter
+case class Rollback() extends SolverStepResult derives ReadWriter
+case class Impossible() extends SolverStepResult derives ReadWriter
+
+case class LabelInput(roomFromLabel : Int, doorIdx : Int, roomToLabel : Int) derives ReadWriter
+case class StepInput(roomFromUid : Int, doorIdx : Int, roomToLabel : Int) derives ReadWriter
+
 object DynamicSolver {
-    def processStep(g : MyGraph, roomFromUid : Int, doorIdx : Int, roomToLabel : Int) : Option[MyGraph] =
-        val existingLinkedRoom = g.adjacentRoom(g.doors(roomFromUid)(doorIdx))
-        existingLinkedRoom match {
-            case None => {
-                val existingCandidateRooms = g.findRoomsByLabel(roomToLabel)
-                val existingCandidateDoors = existingCandidateRooms.flatMap(room => g.findFirstFreeDoor(room.uid))
-                if (existingCandidateDoors.length > 0) {
-                    val nextDoor = existingCandidateDoors(0)
-                    Some(
-                        g.connectRooms(roomFromUid, doorIdx, nextDoor.roomUid, nextDoor.idx)
-                    )
-                } else {
-                    val freeRooms = g.findUnlabeledRooms
-                    if (freeRooms.length > 0) {
-                        val freeRoom = freeRooms(0)
-                        val labeledGraph = g.setRoomLabel(freeRoom.uid, Some(roomToLabel))
-                        Some(
-                            labeledGraph.connectRooms(roomFromUid, doorIdx, freeRoom.uid, 0)
-                        )
+    def processStep(g : MyGraph, input : StepInput, targetRoomOffset : Int = 0, targetDoorOffset : Int = 0) : SolverStepResult =
+        println(s"Try: from room #${input.roomFromUid}, via door #${input.doorIdx}, to room labeled ${input.roomToLabel}, room offset = $targetRoomOffset, door offset = $targetDoorOffset")
+        if (targetRoomOffset > g.rooms.length - 1) {
+            TargetRoomsExhausted()
+        } else if (targetDoorOffset > 5) {
+            TargetDoorsExhausted()
+        } else {
+            val existingLinkedRoom = g.adjacentRoom(g.doors(input.roomFromUid)(input.doorIdx))
+            existingLinkedRoom match {
+                case None => {
+                    val existingCandidateRooms = g.findRoomsByLabel(input.roomToLabel)
+                    println(s"Rooms already labeled ${input.roomToLabel}: $existingCandidateRooms")
+                    if (existingCandidateRooms.length > targetRoomOffset) {
+                        val existingCandidateDoors = g.findFreeDoors(existingCandidateRooms(targetRoomOffset).uid)
+                        if (existingCandidateDoors.length > targetDoorOffset) {
+                            val nextDoor = existingCandidateDoors(targetDoorOffset)
+                            StepApplied(
+                                g.connectRooms(input.roomFromUid, input.doorIdx, nextDoor.roomUid, nextDoor.idx),
+                                nextDoor
+                            )
+                        } else {
+                            TargetDoorsExhausted()
+                        }
                     } else {
-                        None
+                        val freeRooms = g.findUnlabeledRooms
+                        val freeRoomOffset = targetRoomOffset - existingCandidateRooms.length
+                        if (freeRooms.length > freeRoomOffset) {
+                            val freeRoom = freeRooms(freeRoomOffset)
+                            val labeledGraph = g.setRoomLabel(freeRoom.uid, Some(input.roomToLabel))
+                            StepApplied(
+                                labeledGraph.connectRooms(input.roomFromUid, input.doorIdx, freeRoom.uid, 0),
+                                DoorVertex(freeRoom.uid, 0)
+                            )
+                        } else {
+                            TargetRoomsExhausted()
+                        }
+                    }
+                }
+                case Some(linkedRoom) => {
+                    if (linkedRoom.label == Some(input.roomToLabel)) {
+                        val nextDoor = g.adjacentDoor(g.doors(input.roomFromUid)(input.doorIdx)).get
+                        StepApplied(g, nextDoor)
+                    } else {
+                        Contradiction()
                     }
                 }
             }
-            case Some(linkedRoom) => {
-                if (linkedRoom.label == Some(roomToLabel)) {
-                    Some(g)
-                } else {
-                    None
-                }
-            }
         }
+
+    def processStepEnumerating(graph : MyGraph, inputs : Seq[LabelInput], currentRoomUid : Int = 0, roomOffset : Int = 0, doorOffset : Int = 0) : SolverStepResult =
+        if (inputs.length == 0) {
+            StepApplied(graph, DoorVertex(currentRoomUid, 0))
+        } else {
+            val stepInput = StepInput(currentRoomUid, inputs.head.doorIdx, inputs.head.roomToLabel)
+            val stepResult = processStep(graph, stepInput, roomOffset, doorOffset)
+            stepResult match {
+                case StepApplied(newGraph, door) =>
+                    println(f"Step into; remaining length is ${inputs.tail.length}")
+                    return processStepEnumerating(newGraph, inputs.tail, currentRoomUid = door.roomUid)
+                case TargetDoorsExhausted() =>
+                    println("Doors exhausted")
+                    return processStepEnumerating(graph, inputs, roomOffset+1, 0)
+                case TargetRoomsExhausted() =>
+                    println("Rooms exhausted")
+                    return TargetRoomsExhausted()
+                case Contradiction() =>
+                    println("Contradiction")
+                    return processStepEnumerating(graph, inputs, currentRoomUid, roomOffset = roomOffset, doorOffset = doorOffset+1)
+                    // return Rollback()
+                case Rollback() =>
+                    println("Rollback")
+                    return processStepEnumerating(graph, inputs, currentRoomUid, roomOffset = roomOffset, doorOffset = doorOffset+1)
+            }
+            Impossible()
+        }
+
+    def makeInput(plan : Seq[Int], roomLabels : Seq[Int]) : Seq[LabelInput] =
+        var prevLabel = roomLabels.head
+        var result = Seq[LabelInput]()
+        for (i <- plan.indices)
+            val doorIdx = plan(i)
+            val roomLabel = roomLabels.tail(i)
+            val item = LabelInput(prevLabel, doorIdx, roomLabel)
+            prevLabel = roomLabel
+            result = result :+ item
+        result
+
+    def processPlanAndRooms(graph : MyGraph, srcRoomUid : Int, plan : Seq[Int], roomLabels : Seq[Int]) : SolverStepResult =
+        val inputs = makeInput(plan, roomLabels)
+        processStepEnumerating(graph, inputs, currentRoomUid = srcRoomUid)
+
 }
