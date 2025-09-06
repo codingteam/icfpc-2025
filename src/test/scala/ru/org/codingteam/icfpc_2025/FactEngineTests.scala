@@ -6,7 +6,7 @@ class FactEngineTests extends AnyFunSuite:
     test("by default it should not be resolved"):
         val engine = FactEngine.allocate(8)
         val solution = engine.tryGuess()
-        assert(solution == None)
+        assert(solution.isEmpty)
 
     test("it should guess"):
         var engine = FactEngine.allocate(2)
@@ -31,12 +31,13 @@ class FactEngineTests extends AnyFunSuite:
                     ConnectionDefinition(Door(0, 4), Door(0, 4)),
                     ConnectionDefinition(Door(0, 5), Door(0, 5)),
                     
-                    ConnectionDefinition(Door(1, 0), Door(1, 0))),
-                    ConnectionDefinition(Door(1, 1), Door(1, 1))),
-                    ConnectionDefinition(Door(1, 2), Door(1, 2))),
-                    // ConnectionDefinition(Door(1, 4), Door(0, 2))),
-                    ConnectionDefinition(Door(1, 3), Door(1, 3)))
-                    ConnectionDefinition(Door(1, 4), Door(1, 4)))
-                    ConnectionDefinition(Door(1, 5), Door(1, 5)))
+                    ConnectionDefinition(Door(1, 0), Door(1, 0)),
+                    ConnectionDefinition(Door(1, 1), Door(1, 1)),
+                    ConnectionDefinition(Door(1, 2), Door(1, 2)),
+                    // ConnectionDefinition(Door(1, 4), Door(0, 2)),
+                    ConnectionDefinition(Door(1, 3), Door(1, 3)),
+                    ConnectionDefinition(Door(1, 4), Door(1, 4)),
+                    ConnectionDefinition(Door(1, 5), Door(1, 5))
+                )
             )
         )
