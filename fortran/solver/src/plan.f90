@@ -10,6 +10,7 @@ module plan_mod
         procedure :: inited
         procedure :: add_step
         procedure :: reset
+        procedure :: generate
         procedure :: plan_assignment
         generic :: assignment(=) => plan_assignment
     end type plan_t
@@ -38,6 +39,28 @@ contains
         class(plan_t), intent(inout) :: plan
         plan%current = 1
     end subroutine reset
+    subroutine generate(plan, kind)
+        use random_mod, only: shuffle
+        class(plan_t), intent(inout) :: plan
+        integer, intent(in) :: kind
+        integer(1), allocatable :: steps(:)
+        integer(1), parameter :: filler(6) = (/ 0_1, 1_1, 2_1, 3_1, 4_1, 5_1 /)
+        integer :: i
+        if (kind /= 1) error stop "not implemented"
+        allocate(steps(size(plan%steps)))
+        do i = 1, size(steps), 6
+            steps(i:i+5) = filler
+        end do
+        do i = 1, size(steps), 12
+            call shuffle(steps(i:i+11), 12)
+        end do
+        do i = 1, size(steps), 6
+            call shuffle(steps(i:i+5), 6)
+        end do
+        do i = 1, size(steps)
+            plan%steps(i)%door_out = steps(i)
+        end do
+    end subroutine generate
     subroutine plan_assignment(lhs, rhs)
         class(plan_t), intent(out) :: lhs
         class(plan_t), intent(in)  :: rhs
