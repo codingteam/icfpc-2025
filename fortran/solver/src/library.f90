@@ -81,10 +81,16 @@ contains
     end subroutine from_file
     subroutine refine(library)
         class(library_t), intent(inout) :: library
-        integer :: plan_id, step_id, room_id
+        integer :: plan_id, step_id, room_id, door_id, room_idx
 
         do plan_id = 1, size(library%plans)
-            do step_id = 1, size(library%plans(plan_id)%steps)
+            associate (room_out => library%plans(plan_id)%steps(1)%room_out, &
+                       door_out => library%plans(plan_id)%steps(1)%door_out, &
+                       room_in => library%plans(plan_id)%steps(1)%room_in, &
+                       room => library%rooms(1))
+                room%doors(door_out)%rooms(room_in + 1::4) = .true._1
+            end associate
+            do step_id = 2, size(library%plans(plan_id)%steps)
                 associate (room_out => library%plans(plan_id)%steps(step_id)%room_out, &
                            door_out => library%plans(plan_id)%steps(step_id)%door_out, &
                            room_in => library%plans(plan_id)%steps(step_id)%room_in)
@@ -95,6 +101,24 @@ contains
                     end do
                 end associate
             end do
+        end do
+        do room_id = 1, size(library%rooms)
+            associate (room => library%rooms(room_id))
+                do door_id = lbound(room%doors, 1), ubound(room%doors, 1)
+                    associate (door => room%doors(door_id))
+                        if (count(door%rooms .eqv. .true._1) == 1) then
+                            do room_idx = 1, size(door%rooms)
+                                if (door%rooms(room_idx)) then
+                                    door%room = room_idx
+                                    exit
+                                end if
+                            end do
+                        else if (count(door%rooms .eqv. .true._1) == 0) then
+                            door%room = room_id
+                        end if
+                    end associate
+                end do
+            end associate
         end do
     end subroutine refine
     subroutine show(library)
