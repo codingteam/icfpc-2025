@@ -16,6 +16,6 @@ contains
         if (door%inited) return
         door%inited = .true.
         door%room = -1
-        allocate(door%rooms(n), source = .true._1)
+        allocate(door%rooms(n), source = .false._1)
     end subroutine init
 end module door_mod

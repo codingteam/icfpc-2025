@@ -5,7 +5,7 @@ module room_mod
     type :: room_t
         logical(1) :: inited = .false.
         integer(1) :: number
-        type(door_t) :: doors(6)
+        type(door_t) :: doors(0:5)
     contains
         procedure :: init
     end type room_t
@@ -17,7 +17,7 @@ contains
         integer :: i
         if (room%inited) return
         room%inited = .true._1
-        do i = 1, 6
+        do i = lbound(room%doors, 1), ubound(room%doors, 1)
             call room%doors(i)%init(n)
         end do
     end subroutine init
