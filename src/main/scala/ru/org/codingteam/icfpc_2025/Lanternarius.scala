@@ -27,6 +27,15 @@ object Lanternarius {
     vals.toSeq
   }
 
+  def shuffle6(N: Int): Seq[Int] = {
+    val rand = new Random()
+    val chunks = N / 6
+
+    (1 to chunks).flatMap { _ =>
+      rand.shuffle(0 to 5)
+    }
+  }
+
   def lanternariuses(Nroutes: Int, length: Int): Seq[Seq[Int]] = {
     Seq.fill(Nroutes)(lanternarius(length))
   }
