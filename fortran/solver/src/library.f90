@@ -17,6 +17,7 @@ contains
         allocate(library%rooms(n))
         do i = 1, n
             call library%rooms(i)%init(n)
+            library%rooms(i)%number = mod(i-1, 4)
         end do
     end subroutine init
 end module library_mod
