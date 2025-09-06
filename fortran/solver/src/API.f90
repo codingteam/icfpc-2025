@@ -17,7 +17,7 @@ contains
 
         header = ' --header "Content-Type: application/json" '
         request = ' --request POST '
-        data = ' --data ''{ "id": "' // task%API_ID // '", "problemName": "probatio" }'' '
+        data = ' --data ''{ "id": "' // task%API_ID // '", "problemName": "' // task%name // '" }'' '
 
         command = 'curl -s ' // header // request // data // task%API_URL // '/select > select'
         call execute_command_line(command, wait=.true.)
