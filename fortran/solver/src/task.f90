@@ -71,7 +71,7 @@ contains
                 error stop "Unknown task name '" // task%name // "'"
         end select
         if (task%kind == 1) then
-            task%max_length = 9 * task%n_rooms
+            task%max_length = 18 * task%n_rooms
         else if (task%kind == 2) then
             task%max_length = 6 * task%n_rooms
         else
