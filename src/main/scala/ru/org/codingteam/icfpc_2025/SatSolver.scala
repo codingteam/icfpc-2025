@@ -40,10 +40,6 @@ object SatSolver:
             return Step.ExploreStep(plan)
 
         var exploredConnections = Seq.empty[(Int, Int, Int)]
-        var byEnter = Map.empty[Int, Seq[(Int, Int)]]
-        var byExit = Map.empty[Int, Seq[(Int, Int)]]
-        var byEnterExit = Map.empty[(Int, Int), Seq[Int]]
-
         for j <- knowledge.visitedRoutes.indices do
             val plan = knowledge.visitedRoutes(j)
             val rooms = knowledge.visitedRooms(j)
@@ -52,24 +48,7 @@ object SatSolver:
                 val door = plan(i)
                 val enter = rooms(i)
                 val exit = rooms(i + 1)
-
                 exploredConnections = exploredConnections :+ (enter, exit, door)
-
-                if !byEnter.contains(enter) then 
-                    byEnter += (enter -> Seq((exit, door)))
-                else
-                    byEnter += (enter -> (byEnter(enter) :+ (exit, door)))
-
-                if !byExit.contains(exit) then 
-                    byExit += (exit -> Seq((enter, door)))
-                else
-                    byExit += (exit -> (byExit(exit) :+ (enter, door)))
-
-                var enterExit = (enter, exit)
-                if !byEnterExit.contains(enterExit) then 
-                    byEnterExit += (enterExit -> Seq(door))
-                else
-                    byEnterExit += (enterExit -> (byEnterExit(enterExit) :+ door))
 
         println(s"Explored conntections: ${exploredConnections}")
 
@@ -165,62 +144,6 @@ object SatSolver:
                                         sb ++= s"-${connectionVariableIndex(problem.size, j, i, d)} "
                                 sb ++= "0\n"
 
-        // // expeditions clauses
-        // for (enter, exit, door) <- exploredConnections do
-        //     if enter != exit then
-        //         // exist connection between two different rooms through the __door__
-        //         for i <- 0 to problem.size - 1 do
-        //             for j <- 0 to problem.size - 1 do
-        //                 if i != j then
-        //                     sb ++= s"${connectionVariableIndex(problem.size, i, j, door)} "
-        //         sb ++= "0\n"
-
-        // // for enter -door-> exit
-        // // if room labeled as __enter__ should exist one of connections to other rooms via the __door__
-        // for (enter, exits) <- byEnter do
-        //     for i <- 0 to problem.size - 1 do
-        //         sb ++= s"-${roomLabelVariableIndex(i, enter)} "
-
-        //         for (exit, door) <- exits do
-        //             for j <- 0 to problem.size - 1 do
-        //                 if enter != exit then
-        //                     if i != j then
-        //                         sb ++= s"${connectionVariableIndex(problem.size, i, j, door)} "    
-        //                 else
-        //                     sb ++= s"${connectionVariableIndex(problem.size, i, j, door)} "
-        //         sb ++= "0\n"
-
-        // // if room labeled as __exit__ should exist one of connections from other rooms via the __door__
-        // for (exit, enters) <- byExit do
-        //     for i <- 0 to problem.size - 1 do
-        //         sb ++= s"-${roomLabelVariableIndex(i, exit)} "
-
-        //         for (enter, door) <- enters do
-        //             for j <- 0 to problem.size - 1 do
-        //                 if enter != exit then
-        //                     if i != j then
-        //                         sb ++= s"${connectionVariableIndex(problem.size, i, j, door)} "    
-        //                 else
-        //                     sb ++= s"${connectionVariableIndex(problem.size, i, j, door)} "
-        //         sb ++= "0\n"
-
-        // for ((enter, exit), doors) <- byEnterExit do
-        //     for i <- 0 to problem.size - 1 do
-        //         for j <- 0 to problem.size - 1 do
-        //             if enter != exit then
-        //                 if i != j then
-        //                     sb ++= s"-${roomLabelVariableIndex(i, enter)} "
-        //                     sb ++= s"-${roomLabelVariableIndex(j, exit)} "
-        //                     for door <- doors do
-        //                         sb ++= s"${connectionVariableIndex(problem.size, i, j, door)} "    
-        //                     sb ++= "0\n"
-        //             else
-        //                 sb ++= s"-${roomLabelVariableIndex(i, enter)} "
-        //                 sb ++= s"-${roomLabelVariableIndex(j, exit)} "
-        //                 for door <- doors do
-        //                     sb ++= s"${connectionVariableIndex(problem.size, i, j, door)} "    
-        //                 sb ++= "0\n"
-
         val folder = Files.createTempDirectory(s"icfpc.sat.${problem.name}")
         println(s"Temp directory: ${folder}")
 
@@ -251,17 +174,13 @@ object SatSolver:
                         var outConnectionsCount = 0
                         for d <- 0 to 5 do
                             if solution(connectionVariableIndex(problem.size, i, j, d) - 1) > 0 then 
-                                // println(s"out beta(${i}, ${j}, ${d}) = ${solution(connectionVariableIndex(problem.size, i, j, d) - 1)}")
                                 outConnectionsCount = outConnectionsCount + 1
 
                         var inConnectionsCount = 0
                         for d <- 0 to 5 do
                             if solution(connectionVariableIndex(problem.size, j, i, d) - 1) > 0 then
-                                // println(s"in beta(${j}, ${i}, ${d}) = ${solution(connectionVariableIndex(problem.size, j, i, d) - 1)}")
                                 inConnectionsCount = inConnectionsCount + 1
 
-                        // println(s"rooms ${i} ${j}, out = ${outConnectionsCount}")
-                        // println(s"rooms ${i} ${j}, in = ${inConnectionsCount}")
                         if outConnectionsCount != inConnectionsCount then
                             invalid = true
 
