@@ -69,8 +69,15 @@ contains
     function solution_t_to_json(solution) result(json)
         class(solution_t), intent(in) :: solution
         character(len=:), allocatable :: json
+        character(len=4) :: tmp
         integer :: i
-        json = '"startingRoom": 1, "connections": [ '
+        json = '"map": { "rooms": [ '
+        do i = 1, size(solution%connections) / 6
+            write(tmp, '(I0)') mod(i-1, 4)
+            json = json // trim(tmp)
+            if (i /= size(solution%connections) / 6) json = json // ', '
+        end do
+        json = json // ' ], "startingRoom": 1, "connections": [ '
         do i = 1, size(solution%connections)
             json = json // solution%connections(i)%to_json()
             if (i /= size(solution%connections)) json = json // ', '
