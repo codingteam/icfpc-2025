@@ -12,6 +12,7 @@ case class StepApplied(graph : MyGraph, nextDoor : DoorVertex) extends SolverSte
 case class TargetDoorsExhausted() extends SolverStepResult derives ReadWriter
 case class TargetRoomsExhausted() extends SolverStepResult derives ReadWriter
 case class Contradiction() extends SolverStepResult derives ReadWriter
+case class TryOtherDoor() extends SolverStepResult derives ReadWriter
 case class Rollback() extends SolverStepResult derives ReadWriter
 case class Impossible() extends SolverStepResult derives ReadWriter
 
@@ -63,11 +64,12 @@ object DynamicSolver {
                     }
                 }
                 case Some(linkedRoom) => {
-                    println(s"Room #${input.roomFromUid} door ${input.doorIdx} was already connected to room #${linkedRoom.uid} (label ${linkedRoom.label})")
                     if (linkedRoom.label == Some(input.roomToLabel)) {
+                        println(s"Room #${input.roomFromUid} door ${input.doorIdx} was already connected to room #${linkedRoom.uid} (label ${linkedRoom.label}) => good")
                         val nextDoor = g.adjacentDoor(g.doors(input.roomFromUid)(input.doorIdx)).get
                         StepApplied(g, nextDoor)
                     } else {
+                        println(s"Room #${input.roomFromUid} door ${input.doorIdx} was already connected to room #${linkedRoom.uid} (label ${linkedRoom.label}) => contradiction")
                         Contradiction()
                     }
                 }
@@ -80,17 +82,18 @@ object DynamicSolver {
         var subDoorOffset = 0
         while (iteration < 100)
             val subOffsets = Offsets(subRoomOffset, subDoorOffset) +: offsets
-            println(f"Step into, iteration $iteration; remaining length is ${inputs.tail.length}; offsets: $subOffsets")
+            println(f"Step into, iteration $iteration; remaining length is ${inputs.length}; offsets: $subOffsets")
             val subResult = processStepRecursive(graph, inputs, currentRoomUid = currentRoomUid, offsets = subOffsets)
             println(s"Returning from recursive call: $subResult")
             subResult match {
                 case StepApplied(_,_) => return subResult
-                case TargetRoomsExhausted() => return Contradiction()
+                case TargetRoomsExhausted() => return TryOtherDoor()
                 case TargetDoorsExhausted() =>
                     subRoomOffset += 1
                     subDoorOffset = 0
-                case Contradiction() =>
+                case TryOtherDoor() =>
                     subDoorOffset += 1
+                case Contradiction() => return TryOtherDoor()
             }
             iteration += 1
         Impossible()
