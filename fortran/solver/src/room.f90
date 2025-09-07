@@ -9,6 +9,8 @@ module room_mod
     contains
         procedure :: init
         procedure :: show
+        procedure :: room_t_assignment
+        generic :: assignment(=) => room_t_assignment
     end type room_t
     public :: room_t
 contains
@@ -32,4 +34,11 @@ contains
             write(6, *) ''
         end do
     end subroutine show
+    subroutine room_t_assignment(lhs, rhs)
+        class(room_t), intent(out) :: lhs
+        class(room_t), intent(in)  :: rhs
+        lhs%inited = rhs%inited
+        lhs%number = rhs%number
+        lhs%doors = rhs%doors
+    end subroutine room_t_assignment
 end module room_mod
