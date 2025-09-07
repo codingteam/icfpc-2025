@@ -11,6 +11,7 @@ list(APPEND SOURCES
   ${dir}/library.f90
   ${dir}/API.f90
   ${dir}/solver.f90
+  ${dir}/solution.f90
 )
 
 set(SOURCES ${SOURCES} PARENT_SCOPE)
