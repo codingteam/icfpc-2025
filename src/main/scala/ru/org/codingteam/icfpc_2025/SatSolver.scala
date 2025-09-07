@@ -11,7 +11,7 @@ object SatSolver:
         Ædificium.select(problem.name)
         println(s"${problem.name} has been selected.")
 
-        var knowledge = KnowledgeHolder(Vector.empty, Vector.empty)
+        var knowledge = KnowledgeHolder(problem.size, Vector.empty, Vector.empty, Vector.empty, Vector.empty)
         while true do
             println("Determining next step...")
             val step = nextStep(problem, knowledge)
@@ -100,6 +100,18 @@ object SatSolver:
                         sb ++= s"${roomLabelVariablesCount + connectionVariableIndex(problem.size, j, i, k)} "
                     sb ++= "0\n"
 
+        // expeditions
+        for (enterLabel, exitLabel, door) <- exploredConnections do
+            // enter
+            for i <- 0 to problem.size - 1 do
+                for j <- 0 to problem.size - 1 do
+                    sb ++= s"-${roomLabelVariablesCount + connectionVariableIndex(problem.size, i, j, door)} "
+                    sb ++= s"${roomLabelVariableIndex(i, enterLabel)}"
+            // exit
+            for i <- 0 to problem.size - 1 do
+                for j <- 0 to problem.size - 1 do
+                    sb ++= s"-${roomLabelVariablesCount + connectionVariableIndex(problem.size, i, j, door)} "
+                    sb ++= s"${roomLabelVariableIndex(j, exitLabel)}"
 
         Files.writeString(folder.resolve("step1.dimacs"), sb.toString)
         throw new Exception("Incorrect solution! Analyze results in \"path\".")
