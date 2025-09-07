@@ -6,6 +6,7 @@ module solver_mod
     type :: solver_t
         logical(1) :: inited = .false.
         type(library_t) :: library
+        type(task_t) :: task
     contains
         procedure :: init
         procedure :: submit
@@ -35,6 +36,7 @@ contains
         end do
         call solver%library%refine()
         call solver%library%show()
+        solver%task = task
     contains
         function generate_plans(task) result(plans)
             type(task_t) :: task
@@ -53,8 +55,10 @@ contains
     end subroutine init
     subroutine submit(solver)
         use solution_mod, only: solution_t
+        use API_mod, only: guess
         class(solver_t), intent(inout) :: solver
         type(solution_t) :: solution
         call solution%init(solver%library)
+        call guess(solver%task, solution%to_json())
     end subroutine submit
 end module solver_mod

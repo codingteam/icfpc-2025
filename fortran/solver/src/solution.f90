@@ -30,9 +30,9 @@ contains
         class(connection_t), intent(in) :: connection
         character(len=:), allocatable :: json
         character(len=120) :: json_tmp
-        write(json_tmp, '(A,4(I0,A))') '{ "from": { "room": ', connection%room_out, ', ' // &
+        write(json_tmp, '(A,4(I0,A))') '{ "from": { "room": ', connection%room_out - 1, ', ' // &
                                                    '"door": ', connection%door_out, ' }, ' // &
-                                           '"to": { "room": ', connection%room_in, ', ' // &
+                                           '"to": { "room": ', connection%room_in - 1, ', ' // &
                                                    '"door": ', connection%door_in, ' } }'
         json = trim(json_tmp)
     end function connection_t_to_json
@@ -77,7 +77,7 @@ contains
             json = json // trim(tmp)
             if (i /= size(solution%connections) / 6) json = json // ', '
         end do
-        json = json // ' ], "startingRoom": 1, "connections": [ '
+        json = json // ' ], "startingRoom": 0, "connections": [ '
         do i = 1, size(solution%connections)
             json = json // solution%connections(i)%to_json()
             if (i /= size(solution%connections)) json = json // ', '

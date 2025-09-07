@@ -3,7 +3,7 @@ module API_mod
     use plan_mod, only: plan_t
     implicit none
     private
-    public :: select, explore
+    public :: select, explore, guess
 contains
     subroutine select(task)
         type(task_t), intent(in) :: task
@@ -104,4 +104,31 @@ contains
         close(lu, status = "delete")
 
     end subroutine explore
+    subroutine guess(task, solution)
+        type(task_t), intent(in) :: task
+        character(len=*), intent(in) :: solution
+
+        character(len=:), allocatable :: command, header, request, data
+
+        integer :: lu
+
+        open(newunit = lu, file = "guess", status = "unknown")
+        close(lu, status = "delete")
+
+        header = ' --header "Content-Type: application/json" '
+        request = ' --request POST '
+        data = ' --data ''{ "id": "' // task%API_ID // '", ' // solution // ' }'' '
+
+        command = 'curl -s ' // header // request // data // task%API_URL // '/guess > guess'
+        call execute_command_line(command, wait=.true.)
+
+        open(newunit = lu, file = "guess", status = "old")
+        block
+            integer :: idx
+            data = repeat(" ", 1024)
+            read(lu, '(A)') data
+            print '(A,A)', 'Resolution: ', trim(data)
+        end block
+        close(lu, status = "delete")
+    end subroutine guess
 end module API_mod
