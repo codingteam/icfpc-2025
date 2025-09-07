@@ -8,6 +8,8 @@ module door_mod
     contains
         procedure :: init
         procedure :: show
+        procedure :: door_t_assignment
+        generic :: assignment(=) => door_t_assignment
     end type door_t
     public :: door_t
 contains
@@ -25,4 +27,12 @@ contains
         write(fmt, '(A,I0,A)') '(I2,A,', size(door%rooms), '(L0," "))'
         write(6, fmt, advance = "no") door%room, ' | ', door%rooms
     end subroutine show
+    subroutine door_t_assignment(lhs, rhs)
+        class(door_t), intent(out) :: lhs
+        class(door_t), intent(in)  :: rhs
+        lhs%inited = rhs%inited
+        lhs%room = rhs%room
+        allocate(lhs%rooms(size(rhs%rooms)))
+        lhs%rooms = rhs%rooms
+    end subroutine door_t_assignment
 end module door_mod
