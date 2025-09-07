@@ -97,7 +97,7 @@ contains
 
                 data_plans = data_plans(2:)
                 idx = index(data_plans, '[')
-                data_plans = data_plans(idx:)
+                if (idx > 0) data_plans = data_plans(idx:)
             end do
 
         end block
