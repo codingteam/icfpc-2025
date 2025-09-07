@@ -24,6 +24,7 @@ contains
         integer, intent(in) :: n_rooms, n_plans
         integer :: i
         if (library%inited) return
+        library%inited = .true.
         allocate(library%rooms(n_rooms))
         allocate(library%plans(n_plans))
         do i = 1, n_rooms
@@ -51,6 +52,7 @@ contains
         type(plan_t) :: plan
 
         if (library%inited) return
+        library%inited = .true.
 
         open(newunit = lu, file = filename, status = "old", action = "read")
 
