@@ -33,7 +33,14 @@ object SatSolver:
                     return
 
     private def nextStep(problem: ProblemDefinition, knowledge: KnowledgeHolder): Step =
+        if knowledge.visitedRoutes.size == 0 then
+            val plan = Seq(Lanternarius.shuffle12(problem.maxRouteLength))
+            return Step.ExploreStep(plan)
+
         var exploredConnections = Seq.empty[(Int, Int, Int)]
+        var byEnter = Map.empty[Int, Seq[(Int, Int)]]
+        var byExit = Map.empty[Int, Seq[(Int, Int)]]
+        var byEnterExit = Map.empty[(Int, Int), Seq[Int]]
 
         for j <- knowledge.visitedRoutes.indices do
             val plan = knowledge.visitedRoutes(j)
@@ -45,6 +52,22 @@ object SatSolver:
                 val exit = rooms(i + 1)
 
                 exploredConnections = exploredConnections :+ (enter, exit, door)
+
+                if !byEnter.contains(enter) then 
+                    byEnter += (enter -> Seq((exit, door)))
+                else
+                    byEnter += (enter -> (byEnter(enter) :+ (exit, door)))
+
+                if !byExit.contains(exit) then 
+                    byExit += (exit -> Seq((enter, door)))
+                else
+                    byExit += (exit -> (byExit(exit) :+ (enter, door)))
+
+                var enterExit = (enter, exit)
+                if !byEnterExit.contains(enterExit) then 
+                    byEnterExit += (enterExit -> Seq(door))
+                else
+                    byEnterExit += (enterExit -> (byEnterExit(enterExit) :+ door))
 
         println(s"explored conntection: ${exploredConnections}")
 
@@ -65,6 +88,22 @@ object SatSolver:
         // rooms has one of {0, 1, 2, 3} labels
         for i <- 0 to problem.size - 1 do
             for l <- 0 to 3 do
+                sb ++= s"${roomLabelVariableIndex(i, l)} "
+            sb ++= "0\n"
+
+        // but no more one label for the room
+        for i <- 0 to problem.size - 1 do
+            for k <- 0 to 3 do
+                for l <- 0 to 3 do
+                    if k < l then
+                        sb ++= s"-${roomLabelVariableIndex(i, k)} "
+                        sb ++= s"-${roomLabelVariableIndex(i, l)} "
+                        sb ++= "0\n"
+
+        // all labels should exist
+        val maxLabel = if problem.size > 3 then 3 else problem.size-1
+        for l <- 0 to maxLabel do
+            for i <- 0 to problem.size - 1 do
                 sb ++= s"${roomLabelVariableIndex(i, l)} "
             sb ++= "0\n"
 
@@ -101,26 +140,68 @@ object SatSolver:
                     sb ++= "0\n"
 
         // expeditions
-        for (enterLabel, exitLabel, door) <- exploredConnections do
-            // enter
+        for (enter, exit, door) <- exploredConnections do
+            if enter != exit then
+                // exist connection between two different rooms through the __door__
+                for i <- 0 to problem.size - 1 do
+                    for j <- 0 to problem.size - 1 do
+                        if i != j then
+                            sb ++= s"${roomLabelVariablesCount + connectionVariableIndex(problem.size, i, j, door)} "
+                sb ++= "0\n"
+
+        // for enter -door-> exit
+        // if room labeled as __enter__ should exist one of connections to other rooms via the __door__
+        for (enter, exits) <- byEnter do
+            for i <- 0 to problem.size - 1 do
+                sb ++= s"-${roomLabelVariableIndex(i, enter)} "
+
+                for (exit, door) <- exits do
+                    for j <- 0 to problem.size - 1 do
+                        if enter != exit then
+                            if i != j then
+                                sb ++= s"${roomLabelVariablesCount + connectionVariableIndex(problem.size, i, j, door)} "    
+                        else
+                            sb ++= s"${roomLabelVariablesCount + connectionVariableIndex(problem.size, i, j, door)} "
+                sb ++= "0\n"
+
+        // if room labeled as __exit__ should exist one of connections from other rooms via the __door__
+        for (exit, enters) <- byExit do
+            for i <- 0 to problem.size - 1 do
+                sb ++= s"-${roomLabelVariableIndex(i, exit)} "
+
+                for (enter, door) <- enters do
+                    for j <- 0 to problem.size - 1 do
+                        if enter != exit then
+                            if i != j then
+                                sb ++= s"${roomLabelVariablesCount + connectionVariableIndex(problem.size, i, j, door)} "    
+                        else
+                            sb ++= s"${roomLabelVariablesCount + connectionVariableIndex(problem.size, i, j, door)} "
+                sb ++= "0\n"
+
+        for ((enter, exit), doors) <- byEnterExit do
             for i <- 0 to problem.size - 1 do
                 for j <- 0 to problem.size - 1 do
-                    sb ++= s"-${roomLabelVariablesCount + connectionVariableIndex(problem.size, i, j, door)} "
-                    sb ++= s"${roomLabelVariableIndex(i, enterLabel)}"
-            // exit
-            for i <- 0 to problem.size - 1 do
-                for j <- 0 to problem.size - 1 do
-                    sb ++= s"-${roomLabelVariablesCount + connectionVariableIndex(problem.size, i, j, door)} "
-                    sb ++= s"${roomLabelVariableIndex(j, exitLabel)}"
+                    if enter != exit then
+                        if i != j then
+                            sb ++= s"-${roomLabelVariableIndex(i, enter)} "
+                            sb ++= s"-${roomLabelVariableIndex(j, exit)} "
+                            for door <- doors do
+                                sb ++= s"${roomLabelVariablesCount + connectionVariableIndex(problem.size, i, j, door)} "    
+                            sb ++= "0\n"
+                    else
+                        sb ++= s"-${roomLabelVariableIndex(i, enter)} "
+                        sb ++= s"-${roomLabelVariableIndex(j, exit)} "
+                        for door <- doors do
+                            sb ++= s"${roomLabelVariablesCount + connectionVariableIndex(problem.size, i, j, door)} "    
+                        sb ++= "0\n"
+
+
+        // first room label
+        val (firstRoomLabel, firstExit, firstDoor) = exploredConnections.head
+        sb ++= s"${roomLabelVariableIndex(0, firstRoomLabel)} 0\n"
 
         Files.writeString(folder.resolve("step1.dimacs"), sb.toString)
         throw new Exception("Incorrect solution! Analyze results in \"path\".")
-
-        if knowledge.visitedRoutes.size > 0 then
-            return Step.StopGuessing()
-        else
-            val plan = Seq(Lanternarius.lanternarius(problem.maxRouteLength))
-            return Step.ExploreStep(plan)
 
     private def roomLabelVariableIndex(room: Int, label: Int): Int = room*4 + label + 1
 
