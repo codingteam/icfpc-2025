@@ -35,6 +35,7 @@ object DynamicSolver {
                         val existingCandidateDoors = g.findFreeDoors(existingCandidateRooms(targetRoomOffset).uid)
                         if (existingCandidateDoors.length > targetDoorOffset) {
                             val nextDoor = existingCandidateDoors(targetDoorOffset)
+                            println(s"Connect room #${input.roomFromUid} door ${input.doorIdx} to room ${nextDoor.roomUid}, door ${nextDoor.idx}")
                             StepApplied(
                                 g.connectRooms(input.roomFromUid, input.doorIdx, nextDoor.roomUid, nextDoor.idx),
                                 nextDoor
@@ -48,6 +49,7 @@ object DynamicSolver {
                         if (freeRooms.length > freeRoomOffset) {
                             val freeRoom = freeRooms(freeRoomOffset)
                             val labeledGraph = g.setRoomLabel(freeRoom.uid, Some(input.roomToLabel))
+                            println(s"Connect room #${input.roomFromUid} door ${input.doorIdx} to room ${freeRoom.uid}, door ${0}")
                             StepApplied(
                                 labeledGraph.connectRooms(input.roomFromUid, input.doorIdx, freeRoom.uid, 0),
                                 DoorVertex(freeRoom.uid, 0)
@@ -58,6 +60,7 @@ object DynamicSolver {
                     }
                 }
                 case Some(linkedRoom) => {
+                    println(s"Room #${input.roomFromUid} door ${input.doorIdx} was already connected to room #${linkedRoom.uid} (label ${linkedRoom.label})")
                     if (linkedRoom.label == Some(input.roomToLabel)) {
                         val nextDoor = g.adjacentDoor(g.doors(input.roomFromUid)(input.doorIdx)).get
                         StepApplied(g, nextDoor)
@@ -70,6 +73,7 @@ object DynamicSolver {
 
     def processStepEnumerating(graph : MyGraph, inputs : Seq[LabelInput], currentRoomUid : Int = 0, roomOffset : Int = 0, doorOffset : Int = 0) : SolverStepResult =
         if (inputs.length == 0) {
+            println("no inputs left")
             StepApplied(graph, DoorVertex(currentRoomUid, 0))
         } else {
             val stepInput = StepInput(currentRoomUid, inputs.head.doorIdx, inputs.head.roomToLabel)
@@ -77,17 +81,24 @@ object DynamicSolver {
             stepResult match {
                 case StepApplied(newGraph, door) =>
                     println(f"Step into; remaining length is ${inputs.tail.length}")
-                    return processStepEnumerating(newGraph, inputs.tail, currentRoomUid = door.roomUid)
+                    val subResult = processStepEnumerating(newGraph, inputs.tail, currentRoomUid = door.roomUid)
+                    println(s"Returning from recursive call: $subResult")
+                    subResult match {
+                        case StepApplied(_,_) => return subResult
+                        case _ =>
+                            println(s"Do rollback; remaining length is ${inputs.length}")
+                            return processStepEnumerating(graph, inputs, currentRoomUid, roomOffset = roomOffset, doorOffset = doorOffset+1)
+                    }
                 case TargetDoorsExhausted() =>
                     println("Doors exhausted")
-                    return processStepEnumerating(graph, inputs, roomOffset+1, 0)
+                    return processStepEnumerating(graph, inputs, 0, roomOffset+1, 0)
                 case TargetRoomsExhausted() =>
                     println("Rooms exhausted")
                     return TargetRoomsExhausted()
                 case Contradiction() =>
                     println("Contradiction")
-                    return processStepEnumerating(graph, inputs, currentRoomUid, roomOffset = roomOffset, doorOffset = doorOffset+1)
-                    // return Rollback()
+                    //return processStepEnumerating(graph, inputs, currentRoomUid, roomOffset = roomOffset, doorOffset = doorOffset+1)
+                    return Rollback()
                 case Rollback() =>
                     println("Rollback")
                     return processStepEnumerating(graph, inputs, currentRoomUid, roomOffset = roomOffset, doorOffset = doorOffset+1)

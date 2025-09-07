@@ -11,7 +11,7 @@ object Solver {
         Ædificium.select(problem.name)
         println(s"${problem.name} has been selected.")
 
-        var knowledge = KnowledgeHolder(Vector.empty, Vector.empty)
+        var knowledge = KnowledgeHolder(problem.size, Vector.empty, Vector.empty, Vector.empty, Vector.empty)
         while (true) {
             println("Determining next step...")
             val step = nextStep(problem, knowledge)
@@ -84,10 +84,19 @@ object Solver {
         // 6) generate paths to them + finish these routes with random
         // 7) go to 1
 
-        if (knowledge.visitedRoutes.nonEmpty) return Step.StopGuessing()
-
-        val plan = Seq(Lanternarius.shuffle12(problem.maxRouteLength))
-        Step.ExploreStep(plan)
+        //if (knowledge.visitedRoutes.nonEmpty) return Step.StopGuessing()
+        if (knowledge.visitedRoutes.nonEmpty)
+            val res = DynamicSolver.processPlanAndRooms(
+                MyGraph(knowledge.problemSize).setRoomLabel(0, Some(knowledge.lastExploreResult(0)(0))),
+                0,
+                knowledge.lastExploreRequest(0),
+                knowledge.lastExploreResult(0)
+            )
+            val solution = res.get.toSolution
+            Step.GuessStep(solution)
+        else
+            val plan = Seq(Lanternarius.shuffle12(problem.maxRouteLength))
+            Step.ExploreStep(plan)
 
     private def dump(problem: ProblemDefinition, knowledge: KnowledgeHolder, solution: SolutionDefinition): Path =
         val folder = Files.createTempDirectory(s"icfpc.${problem.name}")

@@ -76,8 +76,6 @@ class MyGraph:
         for vert_idx, label in enumerate(rooms):
             if self.labels[vert_idx] != label:
                 errors.append(f"Label of room #{vert_idx} label != actual label {self.labels[vert_idx]}")
-        if errors:
-            return errors
         if starting_room != 0:
             errors.append(f"Starting room index {starting_room} is not equal to actual 0")
             return errors
