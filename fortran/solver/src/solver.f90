@@ -8,6 +8,7 @@ module solver_mod
         type(library_t) :: library
     contains
         procedure :: init
+        procedure :: submit
     end type solver_t
     public :: solver_t
 contains
@@ -50,4 +51,10 @@ contains
             end if
         end function generate_plans
     end subroutine init
+    subroutine submit(solver)
+        use solution_mod, only: solution_t
+        class(solver_t), intent(inout) :: solver
+        type(solution_t) :: solution
+        call solution%init(solver%library)
+    end subroutine submit
 end module solver_mod
