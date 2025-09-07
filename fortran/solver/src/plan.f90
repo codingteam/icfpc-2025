@@ -53,6 +53,7 @@ contains
             steps(i:i+5) = filler
         end do
         do i = 1, size(steps), 12
+            if (i+11 > size(steps)) exit
             call shuffle(steps(i:i+11), 12)
         end do
         do i = 1, size(steps), 6
