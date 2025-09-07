@@ -59,6 +59,16 @@ class MyGraph private (val graph : Graph[MyVertex, UnDiEdge[MyVertex]],
     def findRoomsByLabel(label : Int) =
         rooms.filter(r => r.label == Some(label))
 
+    def findRoomsByLabelWithFreeDoors(label : Int) : Map[RoomVertex, Seq[DoorVertex]] =
+        val pairs = rooms.filter(r => r.label == Some(label)).flatMap(room =>
+                val freeDoors = doors(room.uid).filter(d => graph.get(d).degree == 1)
+                if (freeDoors.isEmpty)
+                    None
+                else
+                    Some(room -> freeDoors)
+            )
+        Map(pairs*)
+
     def findFreeDoors(roomUid : Int) =
         doors(roomUid).filter(d => graph.get(d).degree == 1)
 

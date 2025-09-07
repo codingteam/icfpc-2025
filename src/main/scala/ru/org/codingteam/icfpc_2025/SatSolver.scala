@@ -27,7 +27,7 @@ object SatSolver:
                         return
                     else
                         println(s"The solution for problem ${problem.name} is not correct!")
-                        throw new Exception("Incorrect solution! Analyze results in \"path\".")                    
+                        throw new Exception("Incorrect solution! Analyze results in \"path\".")
                 case Step.StopGuessing() =>
                     println("Don't wanna play anymore.")
                     return
@@ -50,7 +50,7 @@ object SatSolver:
 
         val folder = Files.createTempDirectory(s"icfpc.sat.${problem.name}")
         println(s"Temp directory: ${folder}")
-        
+
         val sb = new StringBuilder()
         val roomLabelVariablesCount = problem.size*4
         val roomLabelClausesCount = problem.size
