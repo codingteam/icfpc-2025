@@ -19,6 +19,7 @@ contains
 
         type(task_t) :: task
         type(plan_t), allocatable :: plans(:)
+        integer :: i
 
         if (solver%inited) return
         solver%inited = .true._1
@@ -27,6 +28,12 @@ contains
         call select(task)
         plans = generate_plans(task)
         call explore(task, plans)
+        call solver%library%init(task%n_rooms, size(plans))
+        do i = 1, size(plans)
+            call solver%library%add_plan(plans(i))
+        end do
+        call solver%library%refine()
+        call solver%library%show()
     contains
         function generate_plans(task) result(plans)
             type(task_t) :: task

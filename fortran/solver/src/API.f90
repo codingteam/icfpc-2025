@@ -68,5 +68,40 @@ contains
         command = 'curl -s ' // header // request // data // task%API_URL // '/explore > explore'
         call execute_command_line(command, wait=.true.)
 
+        open(newunit = lu, file = "explore", status = "old")
+        block
+            integer :: idx
+            integer(1), allocatable :: rooms(:)
+            data_plans = repeat(" ", 1024*1024)
+            read(lu, '(A)') data_plans
+            idx = index(data_plans, '[')
+            data_plans = data_plans(idx+1:)
+            idx = index(data_plans, ']', back=.true.)
+            data_plans = data_plans(:idx)
+            do i = 1, size(plans)
+                data = data_plans(index(data_plans, '['):index(data_plans, ']'))
+                data = data(2:len(data)-1)
+                do j = 1, len(data)
+                    if (data(i:i) == ",") data(i:i) = " "
+                end do
+
+                allocate(rooms(size(plans(i)%steps) + 1))
+
+                call plans(i)%reset()
+                read(data, *) rooms
+                do j = 1, size(rooms) - 1
+                    call plans(i)%add_step(rooms(j), plans(i)%steps(j)%door_out, rooms(j+1))
+                end do
+
+                deallocate(rooms)
+
+                data_plans = data_plans(2:)
+                idx = index(data_plans, '[')
+                data_plans = data_plans(idx:)
+            end do
+
+        end block
+        close(lu, status = "delete")
+
     end subroutine explore
 end module API_mod
