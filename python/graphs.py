@@ -13,18 +13,32 @@ class MyGraph:
         self.edge_labels = None
 
     def generate(self, n_verts):
+        iteration = 0
+        while iteration < 100:
+            iteration += 1
+            self._try_generate(n_verts)
+            largest_component = extract_largest_component(self.graph, prune=True, directed=False)
+            print(f"N verts = {largest_component.num_vertices()}, N edges = {largest_component.num_edges()}")
+            if largest_component.num_vertices() == n_verts:
+                return
+        print("Could not generate a connected graph")
+
+    def _try_generate(self, n_verts):
         self.graph = Graph(directed = True)
         self.labels = self.graph.new_vp("int")
         self.gates = defaultdict(dict)
         self.edge_labels = self.graph.new_ep("int")
 
         self.verts = []
+        labels = []
         for i in range(n_verts):
             v = self.graph.add_vertex()
             label = random.randint(0, 3)
+            labels.append(label)
             self.labels[v] = label
             #self.graph.vertex_index[v] = i
             self.verts.append(v)
+        print(f"Labels: {labels}")
 
         for v1_idx, v1 in enumerate(self.verts):
             for src_gate_idx in range(6):
@@ -45,6 +59,7 @@ class MyGraph:
                         self.gates[v1_idx][src_gate_idx] = edge
                         self.gates[v2_idx][dst_gate_idx] = edge
                         self.edge_labels[edge] = src_gate_idx
+                        print(f"connect [{v1_idx}].{src_gate_idx} to [{v2_idx}].{dst_gate_idx}")
                         #print(f"...selected: [{v2_idx}].{dst_gate_idx}")
                         break
 

@@ -60,6 +60,7 @@ object Ædificium:
                 }
             )
         )
+        println(asJson(request))
         val response = basicRequest
             .post(uri"$baseUrl/guess")
             .body(asJson(request))

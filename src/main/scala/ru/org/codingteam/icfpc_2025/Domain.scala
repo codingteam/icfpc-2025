@@ -16,7 +16,7 @@ object ProblemDefinition {
                 case "quintus" => 30
                 case _ => throw new Exception(s"Unknown problem name: $name."),
             name match
-                case "probatio" => 54
+                case "probatio" => 12
                 case "primus" => 108
                 case "secundus" => 216
                 case "tertius" => 324
