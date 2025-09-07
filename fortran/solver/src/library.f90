@@ -90,7 +90,8 @@ contains
                        door_out => library%plans(plan_id)%steps(1)%door_out, &
                        room_in => library%plans(plan_id)%steps(1)%room_in, &
                        room => library%rooms(1))
-                room%doors(door_out)%rooms(room_in + 1::4) = .true._1
+                if (room%doors(door_out)%room == -1) &
+                    room%doors(door_out)%rooms(room_in + 1::4) = .true._1
             end associate
             do step_id = 2, size(library%plans(plan_id)%steps)
                 associate (room_out => library%plans(plan_id)%steps(step_id)%room_out, &
@@ -98,7 +99,8 @@ contains
                            room_in => library%plans(plan_id)%steps(step_id)%room_in)
                     do room_id = room_out + 1, size(library%rooms), 4
                         associate (room => library%rooms(room_id))
-                            room%doors(door_out)%rooms(room_in + 1::4) = .true._1
+                            if (room%doors(door_out)%room == -1) &
+                                room%doors(door_out)%rooms(room_in + 1::4) = .true._1
                         end associate
                     end do
                 end associate
