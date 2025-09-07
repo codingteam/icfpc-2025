@@ -14,6 +14,8 @@ module library_mod
         procedure :: add_plan
         procedure :: refine
         procedure :: show
+        procedure :: library_t_assignment
+        generic :: assignment(=) => library_t_assignment
     end type library_t
     public :: library_t
 contains
@@ -129,5 +131,21 @@ contains
             call library%rooms(i)%show()
         end do
     end subroutine show
+    subroutine library_t_assignment(lhs, rhs)
+        class(library_t), intent(out) :: lhs
+        class(library_t), intent(in)  :: rhs
+        integer :: i
+        if (.not.rhs%inited) return
+        lhs%inited = .true.
+        allocate(lhs%rooms(size(rhs%rooms)))
+        allocate(lhs%plans(size(rhs%plans)))
+        do i = 1, size(lhs%rooms)
+            lhs%rooms(i) = rhs%rooms(i)
+        end do
+        do i = 1, size(lhs%plans)
+            lhs%plans(i) = rhs%plans(i)
+        end do
+        lhs%current_plan = rhs%current_plan
+    end subroutine library_t_assignment
 
 end module library_mod
