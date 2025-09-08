@@ -1,18 +1,31 @@
 module task_mod
     implicit none
     private
+
+    !> @brief task to solve
     type :: task_t
-        character(len=:), allocatable :: API_URL
-        character(len=:), allocatable :: API_ID
-        character(len=:), allocatable :: name
-        integer :: n_rooms = 0
-        integer :: max_length = 0
-        integer :: kind = 0
+        character(len=:), allocatable :: API_URL !< URL to access tasks
+        character(len=:), allocatable :: API_ID  !< ID to access tasks
+        character(len=:), allocatable :: name    !< task name
+        integer :: n_rooms = 0                   !< number of rooms in task
+        integer :: max_length = 0                !< longest possible plan
+        integer :: kind = 0                      !< type of task; lightning - 1, post-ligthning - 2
     contains
         procedure :: init
     end type task_t
+
     public :: task_t
 contains
+
+    !>
+    !> @brief initialise task_t
+    !>
+    !> @param[in,out] task - task_t object
+    !> @param[in]     name - name of task
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine init(task, name)
         class(task_t), intent(inout) :: task
         character(len=*) :: name
