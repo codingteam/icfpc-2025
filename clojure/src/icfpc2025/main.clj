@@ -2,18 +2,8 @@
   (:use clojure.pprint
         clojure.core.logic))
 
-; Let's explore a simpler system. Imagine we have two rooms, each with two doors. Each door can lead to any of the rooms (including to itself).
-; Route: 0 1 0 1
-; Route result: 0 0 1 1 0
-; Map:
-;   ↕     ↕
-;  "0" ↔ "1"
-;
-
-(def plan [0 1 0 1])
-(def labels [0 0 1 1 0])
-(def door-in-room-count 2)
-(def room-count 2)
+(def door-in-room-count 6)
+(def room-count 3)
 
 (defmacro with-room [room & body]
   (let [label (gensym)
@@ -88,23 +78,84 @@
   )
 )
 
+; Example exploration plan and result:
+(def plan   [  3 0 1 0 4 5 3 5 2 4 2 1])
+(def result [0 0 1 2 2 1 1 1 1 0 1 0 2])
+
+(defn facto [rooms]
+  (and*
+    [
+      (== (:label (nth rooms 0)) (first result))
+
+      (and*
+        (map
+          (fn [prev-label door-index next-label]
+            (or*
+              (map-indexed
+                (fn [prev-room-index prev-room]
+                  (and*
+                    [
+                      (== (:label prev-room) prev-label)
+                      (or*
+                        (map-indexed
+                          (fn [next-room-index next-room]
+                            (and*
+                              [
+                                (== (:label next-room) next-label)
+                                (== (:room (nth (:doors prev-room) door-index)) next-room-index)
+                                (or*
+                                  (map
+                                    (fn [next-room-door]
+                                      (and*
+                                        [
+                                          (== (:door next-room-door) door-index)
+                                          (== (:room next-room-door) prev-room-index)
+                                        ]
+                                      )
+                                    )
+                                    (:doors next-room)
+                                  )
+                                )
+                              ]
+                            )
+                          )
+                          rooms
+                        )
+                      )
+                    ]
+                  )
+                )
+                rooms
+              )
+            )
+          )
+          result
+          plan
+          (rest result)
+        )
+      )
+    ]
+  )
+)
+
 (defn do-solve []
-  (run* [rooms-q]
+  (run 1 [rooms-q]
     (with-room room0
       (with-room room1
-        (let [rooms [room0 room1]]
-          (conde
-            [
-              (setup-roomo rooms room0)
-              (setup-roomo rooms room1)
+        (with-room room2
+          (let [rooms [room0 room1 room2]]
+            (conde
+              [
+                (setup-roomo rooms room0)
+                (setup-roomo rooms room1)
+                (setup-roomo rooms room2)
 
-              ; Now, concrete facts:
-              (== (:doors room0) [{:door 0 :room 0} {:door 1 :room 1}])
-              (== (nth (:doors room1) 0) {:door 0 :room 1})
-              ; let the engine to guess where the door 1 from the room 1 connects to
+                ; Now, concrete facts:
+                (facto rooms)
 
-              (== rooms-q rooms)
-            ]
+                (== rooms-q rooms)
+              ]
+            )
           )
         )
       )
