@@ -120,7 +120,7 @@ contains
                                 end if
                             end do
                         else if (count(door%rooms .eqv. .true._1) == 0) then
-                            door%room = room_id
+                            door%rooms = .true.
                         end if
                     end associate
                 end do
