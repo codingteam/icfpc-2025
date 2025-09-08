@@ -58,22 +58,32 @@ contains
         use guess_mod, only: guess_t
         class(solver_t), intent(inout) :: solver
         type(guess_t), allocatable :: guess(:)
-        integer, parameter :: N_guess = 1024
-        integer :: iter, guess_id, max_length
-        allocate(guess(N_guess))
-        do guess_id = 1, N_guess
-            call guess(guess_id)%init(solver%library)
-        end do
-        do iter = 1, 6 * 9 * size(solver%library%rooms)
-            max_length = 0
+        integer, parameter :: N_guess = 4096
+        integer :: iter, guess_id, max_length, corr_id
+        corr_id = -1
+        infinity: do
+            if (allocated(guess)) deallocate(guess)
+            allocate(guess(N_guess))
             do guess_id = 1, N_guess
-                call guess(guess_id)%eval()
-                call guess(guess_id)%next()
-                max_length = max(max_length, guess(guess_id)%max_length)
+                call guess(guess_id)%init(solver%library)
             end do
-            print '("iter: ",I4," ML:",I4)', iter, max_length
-        end do
-        call guess(1)%set_solution(solver%library)
+            iterations: do iter = 1, 3 * 9 * size(solver%library%rooms)
+                max_length = 0
+                do guess_id = 1, N_guess
+                    call guess(guess_id)%eval()
+                    call guess(guess_id)%next()
+                    max_length = max(max_length, guess(guess_id)%max_length)
+                    if (max_length == size(solver%library%plans(1)%steps)) then
+                        corr_id = guess_id
+                        exit infinity
+                    end if
+                end do
+                print '("iter: ",I4," ML:",I4)', iter, max_length
+            end do iterations
+        end do infinity
+
+        if (corr_id < 0) error stop "solution not found"
+        call guess(corr_id)%set_solution(solver%library)
     end subroutine solve
     subroutine submit(solver)
         use solution_mod, only: solution_t
