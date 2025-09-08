@@ -69,15 +69,19 @@ contains
             end do
             do iter = 1, 3 * 9 * size(solver%library%rooms)
                 max_length = 0
+                !$omp parallel do default(none) &
+                !$omp reduction(max:max_length) &
+                !$omp private(guess_id) &
+                !$omp shared(solver, guess, corr_id)
                 do guess_id = 1, N_guess
                     call guess(guess_id)%eval()
                     call guess(guess_id)%next()
                     max_length = max(max_length, guess(guess_id)%max_length)
                     if (max_length == size(solver%library%plans(1)%steps)) then
                         corr_id = guess_id
-                        exit infinity
                     end if
                 end do
+                if (corr_id /= -1) exit infinity
                 print '("iter: ",I4," ML:",I4)', iter, max_length
             end do
         end do infinity
