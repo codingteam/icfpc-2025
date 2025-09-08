@@ -6,7 +6,7 @@ Includes a solution in Clojure (not used during contest), Fortran (used during c
 
 Also, a test server in Python.
 
-See the documentation in [fortran] folder and documentation comments in sources for more information on the used solution.
+See the documentation in the [fortran/solver](fortran/solver/) folder and documentation comments in sources for more information on the used solution.
 
 Team Members
 ------------
