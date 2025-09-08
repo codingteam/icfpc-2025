@@ -3,11 +3,13 @@ module library_mod
     use plan_mod, only: plan_t
     implicit none
     private
+
+    !> @brief info about labyrinth
     type :: library_t
-        logical(1) :: inited = .false.
-        type(room_t), allocatable :: rooms(:)
-        type(plan_t), allocatable :: plans(:)
-        integer :: current_plan = 1
+        logical(1) :: inited = .false.        !< was initialized
+        type(room_t), allocatable :: rooms(:) !< rooms in labyrinth
+        type(plan_t), allocatable :: plans(:) !< explored plans
+        integer :: current_plan = 1           !< id of current plan; for internal usage
     contains
         procedure :: init
         procedure :: from_file
@@ -17,8 +19,20 @@ module library_mod
         procedure :: library_t_assignment
         generic :: assignment(=) => library_t_assignment
     end type library_t
+
     public :: library_t
 contains
+
+    !>
+    !> @brief initialise library_t
+    !>
+    !> @param[in,out] library - library_t object
+    !> @param[in]     n_rooms - number of rooms in labyrinth
+    !> @param[in]     n_plans - number of plans applied to labyrinth
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine init(library, n_rooms, n_plans)
         class(library_t), intent(inout) :: library
         integer, intent(in) :: n_rooms, n_plans
@@ -33,12 +47,35 @@ contains
         end do
         library%current_plan = 1
     end subroutine init
+
+    !>
+    !> @brief save extra plan
+    !>
+    !> @param[in,out] library - library_t object
+    !> @param[in]     n_rooms - number of rooms in labyrinth
+    !> @param[in]     n_plans - number of plans applied to labyrinth
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine add_plan(library, plan)
         class(library_t), intent(inout) :: library
         type(plan_t), intent(in) :: plan
         library%plans(library%current_plan) = plan
         library%current_plan = library%current_plan + 1
     end subroutine add_plan
+
+    !>
+    !> @brief initialise library_t from file
+    !>
+    !> @note See examples/ about structure
+    !>
+    !> @param[in,out] library  - library_t object
+    !> @param[in]     filename - file to load
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine from_file(library, filename)
         class(library_t), intent(inout) :: library
         character(len=*), intent(in) :: filename
@@ -55,7 +92,6 @@ contains
         library%inited = .true.
 
         open(newunit = lu, file = filename, status = "old", action = "read")
-
         read(lu, *) n_rooms, n_plans, plans_length
 
         call library%init(n_rooms, n_plans)
@@ -83,6 +119,15 @@ contains
         call library%refine()
 
     end subroutine from_file
+
+    !>
+    !> @brief do some simple refinements based on knowledge about labyrinth
+    !>
+    !> @param[in,out] library - library_t object
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine refine(library)
         class(library_t), intent(inout) :: library
         integer :: plan_id, step_id, room_id, door_id, room_idx
@@ -127,6 +172,15 @@ contains
             end associate
         end do
     end subroutine refine
+
+    !>
+    !> @brief prints structure of library to stdout
+    !>
+    !> @param[in] library - library_t object
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine show(library)
         class(library_t), intent(in) :: library
         integer :: i
@@ -135,6 +189,16 @@ contains
             call library%rooms(i)%show()
         end do
     end subroutine show
+
+    !>
+    !> @brief allows assignment without compiler bugs
+    !>
+    !> @param[out] lhs - library_t object for initialisation
+    !> @param[in]  rhs - library_t object with data
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine library_t_assignment(lhs, rhs)
         class(library_t), intent(out) :: lhs
         class(library_t), intent(in)  :: rhs
