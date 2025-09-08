@@ -10,11 +10,25 @@ Prerequisites
 -------------
 - Any JDK 21 distribution. If you don't know which one to use, use [Temurin][temurin].
 - [SBT][sbt] (any recent version should suffice, it will auto-download the correct one).
+- (Optional) For Fortran solver, any Fortran compiler supporting Fortran 2008 features (or their set).
+
+Configure
+---------
+Only for Fortran (with OpenMP support):
+```console
+$ cd fortran/solver
+$ cmake -Bbuild -DENABLE_OPENMP=ON -DCMAKE_BUILD_TYPE=Release
+```
 
 Build
 -----
+Scala:
 ```console
 $ sbt compile
+```
+or Fortran:
+```console
+$ make -C build
 ```
 
 Run
@@ -30,6 +44,13 @@ Available solvers:
 - sat
 
 (Add `-warn` to suppress informational output from SBT.)
+
+Fortran solver:
+```
+$ ./build/solver <problem-name>
+```
+
+This will try to solve the problem with the given name using Fortran solver.
 
 Test
 ---
