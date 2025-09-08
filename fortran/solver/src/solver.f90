@@ -59,6 +59,7 @@ contains
         class(solver_t), intent(inout) :: solver
         type(guess_t) :: guess
         call guess%init(solver%library)
+        call guess%set_solution(solver%library)
     end subroutine solve
     subroutine submit(solver)
         use solution_mod, only: solution_t

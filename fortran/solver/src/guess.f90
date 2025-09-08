@@ -22,6 +22,7 @@ module guess_mod
         logical, allocatable :: mask(:)
     contains
         procedure :: init => guess_init
+        procedure :: set_solution
     end type guess_t
     public :: guess_t
 contains
@@ -129,4 +130,17 @@ contains
         call shuffle(guess%guess, size(guess%guess), guess%mask)
 
     end subroutine guess_init
+    subroutine set_solution(guess, library)
+        class(guess_t), intent(in) :: guess
+        type(library_t), target, intent(inout) :: library
+        integer :: room_id, door_id, n_rooms, cnt
+        n_rooms = size(library%rooms)
+        cnt = 1
+        do room_id = 1, n_rooms
+            do door_id = 0, 5
+                library%rooms(room_id)%doors(door_id)%room = guess%guess(cnt)
+                cnt = cnt + 1
+            end do
+        end do
+    end subroutine set_solution
 end module guess_mod
