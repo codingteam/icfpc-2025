@@ -23,11 +23,24 @@
 module random_mod
     implicit none
     private
+
     interface shuffle
         module procedure shuffle_i1, shuffle_i4
     end interface shuffle
+
     public :: shuffle, rand_int
 contains
+
+    !>
+    !> @brief shuffles array
+    !>
+    !> @param[in,out] arr  - array for shuffling
+    !> @param[in]     n    - size of array
+    !> @param[in]     mask - (optional) mask which elements should be kept on its places
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine shuffle_i1(arr, n, mask)
         integer(1), intent(inout) :: arr(n)
         integer, intent(in) :: n
@@ -61,8 +74,18 @@ contains
                 end do
             end do
         end if
-
     end subroutine shuffle_i1
+
+    !>
+    !> @brief shuffles array
+    !>
+    !> @param[in,out] arr  - array for shuffling
+    !> @param[in]     n    - size of array
+    !> @param[in]     mask - (optional) mask which elements should be kept on its places
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine shuffle_i4(arr, n, mask)
         integer(4), intent(inout) :: arr(n)
         integer, intent(in) :: n
@@ -96,8 +119,18 @@ contains
                 end do
             end do
         end if
-
     end subroutine shuffle_i4
+
+    !>
+    !> @brief generate random int in range from min to max
+    !>
+    !> @param[in] min - minimal integer value
+    !> @param[in] max - maximal integer value
+    !> @return        - value in range [min, max]
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     integer function rand_int(min, max) result(val)
         integer, intent(in):: min, max
         real :: r
