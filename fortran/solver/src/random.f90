@@ -4,7 +4,7 @@ module random_mod
     interface shuffle
         module procedure shuffle_i1, shuffle_i4
     end interface shuffle
-    public :: shuffle
+    public :: shuffle, rand_int
 contains
     subroutine shuffle_i1(arr, n, mask)
         integer(1), intent(inout) :: arr(n)
@@ -76,4 +76,10 @@ contains
         end if
 
     end subroutine shuffle_i4
+    integer function rand_int(min, max) result(val)
+        integer, intent(in):: min, max
+        real :: r
+        call random_number(r)
+        val = floor(min + r * (max - min))
+    end function rand_int
 end module random_mod
