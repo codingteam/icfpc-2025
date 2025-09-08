@@ -58,7 +58,7 @@ contains
         use guess_mod, only: guess_t
         class(solver_t), intent(inout) :: solver
         type(guess_t), allocatable :: guess(:)
-        integer, parameter :: N_guess = 4096
+        integer, parameter :: N_guess = 16*4096
         integer :: iter, guess_id, max_length, corr_id
         corr_id = -1
         infinity: do
@@ -67,7 +67,7 @@ contains
             do guess_id = 1, N_guess
                 call guess(guess_id)%init(solver%library)
             end do
-            iterations: do iter = 1, 3 * 9 * size(solver%library%rooms)
+            do iter = 1, 3 * 9 * size(solver%library%rooms)
                 max_length = 0
                 do guess_id = 1, N_guess
                     call guess(guess_id)%eval()
@@ -79,7 +79,7 @@ contains
                     end if
                 end do
                 print '("iter: ",I4," ML:",I4)', iter, max_length
-            end do iterations
+            end do
         end do infinity
 
         if (corr_id < 0) error stop "solution not found"
