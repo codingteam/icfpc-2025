@@ -12,12 +12,13 @@
 
 (def plan [0 1 0 1])
 (def labels [0 0 1 1 0])
+(def door-in-room-count 2)
 (def room-count 2)
 
 (defmacro with-room [room & body]
   (let [label (gensym)
-        door-target-rooms (take room-count (repeatedly gensym))
-        door-target-doors (take room-count (repeatedly gensym))]
+        door-target-rooms (take door-in-room-count (repeatedly gensym))
+        door-target-doors (take door-in-room-count (repeatedly gensym))]
     `(fresh ~(vec (concat [label] door-target-rooms door-target-doors))
       (let [~room {:label ~label
                    :doors ~(vec (map (fn [r d] {:room r :door d}) door-target-rooms door-target-doors))}]
@@ -27,6 +28,9 @@
   )
 )
 
+(def room-number-range (range room-count))
+(def door-number-range (range door-in-room-count))
+
 (defn setup-room
   "General structure here: each door gets its own root conde block, containing a lot of conditions for each sub-door of each other room."
   [all-rooms room]
@@ -35,6 +39,8 @@
       (:doors room)
       (map-indexed
         (fn [door-index door]
+          (membero (:door door) door-number-range)
+          (membero (:room door) room-number-range)
           (conde
             (concat
               (->>
