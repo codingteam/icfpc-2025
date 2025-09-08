@@ -3,8 +3,18 @@ module API_mod
     use plan_mod, only: plan_t
     implicit none
     private
+
     public :: select, explore, guess
 contains
+
+    !>
+    !> @brief choose new task on server
+    !>
+    !> @param[in] task - selected task
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine select(task)
         type(task_t), intent(in) :: task
 
@@ -34,8 +44,19 @@ contains
             write(6, '("[INFO] selected task: ",A)') data
         end block
         close(lu, status = "delete")
-
     end subroutine select
+
+    !>
+    !> @brief explore task on server
+    !>
+    !> @note plans does not implement method to_json, so its serialiser is inside
+    !>
+    !> @param[in] task  - selected task
+    !> @param[in] plans - routes to walk
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine explore(task, plans)
         type(task_t), intent(in) :: task
         type(plan_t), intent(inout) :: plans(:)
@@ -102,8 +123,17 @@ contains
 
         end block
         close(lu, status = "delete")
-
     end subroutine explore
+
+    !>
+    !> @brief submit solution to server
+    !>
+    !> @param[in] task     - selected task
+    !> @param[in] solution - solution
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine guess(task, solution)
         type(task_t), intent(in) :: task
         character(len=*), intent(in) :: solution
