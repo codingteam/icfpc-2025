@@ -11,7 +11,7 @@ See the documentation in the [fortran/solver](fortran/solver/) folder and docume
 Team Members
 ------------
 In alphabetical order:
-- [ForNeVeR](https://github.com/ForNeVeR)
+- [ForNeVeR](https://github.com/ForNeVeR) — [report](https://fornever.me/en/posts/2025-09-08.icfpc-2025.html)
 - [foxtran](https://github.com/foxtran)
 - [gsomix](https://github.com/gsomix)
 - [portnov](https://github.com/portnov)
