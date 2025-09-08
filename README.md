@@ -2,9 +2,19 @@ icfpc-2025
 ==========
 This is the Codingteam's solution for the [ICFPC Programming Contest 2025][icfpc-2025].
 
+Includes a solution in Clojure (not used during contest), Fortran (used during contest), and Scala (not used during contest).
+
+Also, a test server in Python.
+
+See the documentation in [fortran] folder and documentation comments in sources for more information on the used solution.
+
 Team Members
 ------------
-TBD.
+In alphabetical order:
+- [ForNeVeR](https://github.com/ForNeVeR)
+- [foxtran](https://github.com/foxtran)
+- [gsomix](https://github.com/gsomix)
+- [portnov](https://github.com/portnov)
 
 Prerequisites
 -------------
