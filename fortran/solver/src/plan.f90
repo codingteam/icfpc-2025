@@ -2,9 +2,11 @@ module plan_mod
     use step_mod, only: step_t
     implicit none
     private
-    type :: plan_t
-        integer :: current = 1
-        type(step_t), allocatable :: steps(:)
+
+    !> @brief plan to explore the labyrinth
+    ype :: plan_t
+        integer :: current = 1                !< current step to add; only for internal usage
+        type(step_t), allocatable :: steps(:) !< array of steps
     contains
         procedure :: init
         procedure :: inited
@@ -15,8 +17,19 @@ module plan_mod
         procedure :: plan_assignment
         generic :: assignment(=) => plan_assignment
     end type plan_t
+
     public :: plan_t
 contains
+
+    !>
+    !> @brief initialise plan_t
+    !>
+    !> @param[in,out] plan    - plan_t object
+    !> @param[in]     n_steps - number of steps in plan, 6 * n_rooms or 9 * n_rooms, usually
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine init(plan, n_steps)
         class(plan_t), intent(inout) :: plan
         integer, intent(in) :: n_steps
@@ -24,10 +37,32 @@ contains
         plan%current = 1
         allocate(plan%steps(n_steps))
     end subroutine init
+
+    !>
+    !> @brief check if plan was initialised
+    !>
+    !> @param[in] plan - plan_t object
+    !> @return         - was the plan_t object initialised
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     logical function inited(plan)
         class(plan_t), intent(in) :: plan
         inited = allocated(plan%steps)
     end function inited
+
+    !>
+    !> @brief add step after exploration
+    !>
+    !> @param[in,out] plan     - plan_t object
+    !> @param[in]     room_out - room from which guys exited
+    !> @param[in]     door_out - door from which guys exited
+    !> @param[in]     room_in  - room to which guys entered
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine add_step(plan, room_out, door_out, room_in)
         class(plan_t), intent(inout) :: plan
         integer(1), intent(in) :: room_out, door_out, room_in
@@ -36,10 +71,30 @@ contains
         plan%steps(plan%current)%room_in = room_in
         plan%current = plan%current + 1
     end subroutine add_step
+
+    !>
+    !> @brief resets initialisation of plan
+    !>
+    !> @param[in,out] plan     - plan_t object
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine reset(plan)
         class(plan_t), intent(inout) :: plan
         plan%current = 1
     end subroutine reset
+
+    !>
+    !> @brief generates new plan to explore
+    !>
+    !> @details at the first step the most efficient way is to shuffle array containing the equal number of numbers from 0 to 5
+    !>
+    !> @param[in,out] plan - plan_t object
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine generate(plan, kind)
         use random_mod, only: shuffle
         class(plan_t), intent(inout) :: plan
@@ -63,6 +118,15 @@ contains
             plan%steps(i)%door_out = steps(i)
         end do
     end subroutine generate
+
+    !>
+    !> @brief prints structure of plan_t to stdout
+    !>
+    !> @param[in] plan - plan_t object
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine show(plan)
         class(plan_t), intent(in) :: plan
         integer :: i
@@ -70,6 +134,16 @@ contains
             call plan%steps(i)%show()
         end do
     end subroutine show
+
+    !>
+    !> @brief allows assignment without compiler bugs
+    !>
+    !> @param[out] lhs - plan_t object for initialisation
+    !> @param[in]  rhs - plan_t object with data
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine plan_assignment(lhs, rhs)
         class(plan_t), intent(out) :: lhs
         class(plan_t), intent(in)  :: rhs
