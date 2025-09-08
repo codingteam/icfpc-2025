@@ -63,7 +63,7 @@ contains
         integer(1) :: next_door, next_room_type
         allocate(mask(library%n_rooms, 0:5), source = .false.)
         mask = library%mask
-        current_room = 0
+        current_room = 1
         max_length = 0
         do step_id = 1, size(plan%steps)
             next_door = plan%steps(step_id)%door_out
