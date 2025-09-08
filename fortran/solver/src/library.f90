@@ -119,6 +119,8 @@ contains
                                     exit
                                 end if
                             end do
+                        else if (count(door%rooms .eqv. .true._1) == 0) then
+                            door%room = room_id
                         end if
                     end associate
                 end do
