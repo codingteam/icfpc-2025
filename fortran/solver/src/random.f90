@@ -80,6 +80,6 @@ contains
         integer, intent(in):: min, max
         real :: r
         call random_number(r)
-        val = floor(min + r * (max - min))
+        val = floor(min + r * (max - min + 1))
     end function rand_int
 end module random_mod
