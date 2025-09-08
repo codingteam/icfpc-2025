@@ -4,5 +4,6 @@
 
 target/
 fortran/solver/build/
+fortran/solver/docs/
 
 api-secret.txt
