@@ -49,7 +49,7 @@
                   (fn [other-room-index other-room]
                     (if (= other-room-index room-index)
                       ; For room looping back to itself, all the doors should be short-circuited.
-                      '[
+                      [
                         [(== (:room door) other-room-index)
                          (== (:door door) door-index)]
                       ]
@@ -61,7 +61,7 @@
                           (fn [other-door-index other-door]
                             ; If the current door connects to the other room, corresponding door of the other room should
                             ; connect to here.
-                            '[(== (:room door) other-room-index)
+                            [(== (:room door) other-room-index)
                              (== (:door door) other-door-index)
                              (== (:room other-door) room-index)
                              (== (:door other-door) door-index)]
