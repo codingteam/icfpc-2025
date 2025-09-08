@@ -52,8 +52,7 @@ contains
     !> @brief save extra plan
     !>
     !> @param[in,out] library - library_t object
-    !> @param[in]     n_rooms - number of rooms in labyrinth
-    !> @param[in]     n_plans - number of plans applied to labyrinth
+    !> @param[in]     plan    - a new plan of labyrinth
     !>
     !> @author foxtran
     !> @date   Sep 8, 2025
