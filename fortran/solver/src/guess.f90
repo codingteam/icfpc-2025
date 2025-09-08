@@ -40,7 +40,7 @@ contains
 
         allocate(library%guess(n_rooms, 0:5))
         allocate(library%mask(n_rooms, 0:5), source = .false.)
-        allocate(library%final_mask(n_rooms, 0:5), source = .false.)
+        allocate(library%final_mask(n_rooms, 0:5), source = .true.)
         allocate(library%room_type(n_rooms))
 
         cnt = 1
@@ -48,7 +48,6 @@ contains
             do door_id = 0, 5
                 library%guess(room_id, door_id) = guess(cnt)
                 library%mask(room_id, door_id) = mask(cnt)
-                library%final_mask(room_id, door_id) = mask(cnt)
                 cnt = cnt + 1
             end do
             library%room_type(room_id) = mod(room_id - 1, 4)
@@ -82,10 +81,12 @@ contains
         class(simplified_library_t), intent(in) :: library
         logical, allocatable :: mask(:)
         integer :: room_id, door_id, cnt
+        allocate(mask(6*library%n_rooms), source = .false.)
         cnt = 1
         do room_id = 1, library%n_rooms
             do door_id = 0, 5
                 mask(cnt) = library%final_mask(room_id, door_id)
+                cnt = cnt + 1
             end do
         end do
     end function get_mask
