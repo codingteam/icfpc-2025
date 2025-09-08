@@ -5,7 +5,6 @@ module guess_mod
     type :: simplified_library_t
         logical :: inited = .false.
         integer :: n_rooms
-        integer :: max_length
         integer, allocatable :: guess(:,:)
         logical, allocatable :: mask(:,:)
         logical, allocatable :: final_mask(:,:)
@@ -17,11 +16,13 @@ module guess_mod
     end type simplified_library_t
     type :: guess_t
         logical :: inited = .false.
+        integer :: max_length
         type(library_t), pointer :: library
         integer, allocatable :: guess(:)
         logical, allocatable :: mask(:)
     contains
         procedure :: init => guess_init
+        procedure :: eval
         procedure :: set_solution
     end type guess_t
     public :: guess_t
@@ -36,7 +37,6 @@ contains
         if (library%inited) return
         library%inited = .true.
         library%n_rooms = n_rooms
-        library%max_length = 9 * n_rooms
 
         allocate(library%guess(n_rooms, 0:5))
         allocate(library%mask(n_rooms, 0:5), source = .false.)
@@ -54,7 +54,7 @@ contains
             library%room_type(room_id) = mod(room_id - 1, 4)
         end do
     end subroutine sl_init
-    subroutine execute_plan(library, plan)
+    integer function execute_plan(library, plan) result(max_length)
         use plan_mod, only: plan_t
         class(simplified_library_t), intent(inout) :: library
         type(plan_t), intent(in) :: plan
@@ -72,12 +72,12 @@ contains
                 mask(current_room, next_door) = .true.
                 current_room = next_room
             else
-                library%max_length = min(step_id, library%max_length)
                 exit
             end if
+            max_length = min(step_id, max_length)
         end do
         library%final_mask = library%final_mask .and. mask
-    end subroutine execute_plan
+    end function execute_plan
     function get_mask(library) result(mask)
         class(simplified_library_t), intent(in) :: library
         logical, allocatable :: mask(:)
@@ -101,6 +101,7 @@ contains
 
         guess%library => library
         n_rooms = size(guess%library%rooms)
+        guess%max_length = size(guess%library%plans(1)%steps)
         allocate(guess%guess(6*n_rooms), source = -1)
         allocate(guess%mask(6*n_rooms), source = .false.)
         allocate(rooms(n_rooms), source = 6)
@@ -130,6 +131,20 @@ contains
         call shuffle(guess%guess, size(guess%guess), guess%mask)
 
     end subroutine guess_init
+    subroutine eval(guess)
+        class(guess_t), intent(inout) :: guess
+        type(simplified_library_t) :: library
+        integer :: plan_id, n_rooms, max_length
+        n_rooms = size(guess%library%rooms)
+        max_length = size(guess%library%plans(1)%steps)
+        call library%init(n_rooms, guess%guess, guess%mask)
+        do plan_id = 1, size(guess%library%plans)
+            max_length = min(max_length, &
+                library%execute_plan(guess%library%plans(plan_id)))
+        end do
+        guess%mask = library%get_mask()
+        guess%max_length = max_length
+    end subroutine eval
     subroutine set_solution(guess, library)
         class(guess_t), intent(in) :: guess
         type(library_t), target, intent(inout) :: library
