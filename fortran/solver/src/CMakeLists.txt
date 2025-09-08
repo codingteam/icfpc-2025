@@ -10,6 +10,7 @@ list(APPEND SOURCES
   ${dir}/plan.f90
   ${dir}/library.f90
   ${dir}/API.f90
+  ${dir}/guess.f90
   ${dir}/solver.f90
   ${dir}/solution.f90
 )
