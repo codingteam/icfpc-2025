@@ -46,7 +46,7 @@ Available solvers:
 (Add `-warn` to suppress informational output from SBT.)
 
 Fortran solver:
-```
+```console
 $ ./build/solver <problem-name>
 ```
 
