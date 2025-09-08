@@ -2,32 +2,49 @@ module guess_mod
     use library_mod, only: library_t
     implicit none
     private
+
+    !> @brief helper type for guesses; contains simplified view of library_t
     type :: simplified_library_t
-        logical :: inited = .false.
-        integer :: n_rooms
-        integer, allocatable :: guess(:,:)
-        logical, allocatable :: mask(:,:)
-        logical, allocatable :: final_mask(:,:)
-        integer(1), allocatable :: room_type(:)
+        logical :: inited = .false.             !< was initialised
+        integer :: n_rooms                      !< number of rooms in labyrinth
+        integer, allocatable :: guess(:,:)      !< guessed labyrinth in form (room_out, door_out) -> (room_in)
+        logical, allocatable :: mask(:,:)       !< paired to guessed labyrinth; contains info about 100% sure guesses
+        logical, allocatable :: final_mask(:,:) !< like mask, but contains info after checking plans
+        integer(1), allocatable :: room_type(:) !< types of rooms (in range from 0 to 3)
     contains
         procedure :: init => sl_init
         procedure :: execute_plan
         procedure :: get_mask
     end type simplified_library_t
+
+    !> @brief contains guess of labyrinth
     type :: guess_t
-        logical :: inited = .false.
-        integer :: max_length
-        type(library_t), pointer :: library
-        integer, allocatable :: guess(:)
-        logical, allocatable :: mask(:)
+        logical :: inited = .false.         !< was initialised
+        integer :: max_length               !< length of proper guess
+        type(library_t), pointer :: library !< pointer to global labyrinth info
+        integer, allocatable :: guess(:)    !< guess of rooms' enters in 1D shape
+        logical, allocatable :: mask(:)     !< paired to guess of rooms'; contains info about 100% sure guesses
     contains
         procedure :: init => guess_init
         procedure :: eval
         procedure :: next
         procedure :: set_solution
     end type guess_t
+
     public :: guess_t
 contains
+
+    !>
+    !> @brief initialise simplified_library_t
+    !>
+    !> @param[in,out] library - simplified_library_t object
+    !> @param[in]     n_rooms - number of rooms in labyrinth
+    !> @param[in]     guess   - guess about labyrinth in 1D form
+    !> @param[in]     mask    - info about correct guess about labyrinth in 1D form
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine sl_init(library, n_rooms, guess, mask)
         class(simplified_library_t), intent(inout) :: library
         integer, intent(in) :: n_rooms
@@ -54,6 +71,16 @@ contains
             library%room_type(room_id) = mod(room_id - 1, 4)
         end do
     end subroutine sl_init
+
+    !>
+    !> @brief executes plan to validate guess
+    !>
+    !> @param[in,out] library - simplified_library_t object
+    !> @param[in]     plan    - plan for check
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     integer function execute_plan(library, plan) result(max_length)
         use plan_mod, only: plan_t
         class(simplified_library_t), intent(inout) :: library
@@ -79,6 +106,16 @@ contains
         end do
         library%final_mask = library%final_mask .and. mask
     end function execute_plan
+
+    !>
+    !> @brief return info about which guesses are correct
+    !>
+    !> @param[in] library - simplified_library_t object
+    !> @return            - 1D mask of correct guesses
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     function get_mask(library) result(mask)
         class(simplified_library_t), intent(in) :: library
         logical, allocatable :: mask(:)
@@ -92,8 +129,17 @@ contains
             end do
         end do
     end function get_mask
+
+    !>
+    !> @brief initialise guess_t
+    !>
+    !> @param[in,out] guess   - guess_t object
+    !> @param[in]     library - info about labyrinth
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine guess_init(guess, library)
-        use random_mod, only: shuffle
         class(guess_t), intent(inout) :: guess
         type(library_t), target, intent(in) :: library
         integer :: n_rooms, room_id, door_id, cnt, room_in
@@ -120,8 +166,16 @@ contains
         end do
 
         call guess%next()
-
     end subroutine guess_init
+
+    !>
+    !> @brief check how guess is good
+    !>
+    !> @param[in,out] guess   - guess_t object
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine eval(guess)
         class(guess_t), intent(inout) :: guess
         type(simplified_library_t) :: library
@@ -136,6 +190,19 @@ contains
         guess%mask = library%get_mask()
         guess%max_length = max_length
     end subroutine eval
+
+    !>
+    !> @brief generate new guess based on info after eval
+    !>
+    !> @details tries to generate random labyrinth that as least has proper connections.
+    !>            However, it does not respect rules about which connections are available in reality.
+    !>            So, it sucks a lot.
+    !>
+    !> @param[in,out] guess   - guess_t object
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine next(guess)
         use random_mod, only: shuffle, rand_int
         class(guess_t), intent(inout) :: guess
@@ -148,6 +215,7 @@ contains
         n_rooms = size(guess%library%rooms)
         allocate(rooms(n_rooms), source = 6)
 
+        ! count, which connections are already know
         do cnt = 1, size(guess%guess)
             if (.not.guess%mask(cnt)) then
                 guess%guess(cnt) = 0
@@ -157,6 +225,13 @@ contains
             end if
         end do
 
+        ! main loop to generate labyrinth
+        ! it implements the following algorithm:
+        !   1 ) door by door, select random target room
+        !   2 ) on targeted room, find already known connection
+        !   3a) if connection exists: change sign of this connections
+        !   3b) otherwise: assign first free door to originated room
+        !   4)  shuffle exit rooms in each room to prevent non-random in 3b
         do cnt = 1, size(guess%guess)
             if (guess%guess(cnt) /= 0) cycle
             curr_room = (cnt - 1) / 6 + 1
@@ -191,15 +266,26 @@ contains
 
         guess%guess = abs(guess%guess)
 
+        ! shuffle after bad generation, otherwise the generation is not random, actually
         do room_id = 1, n_rooms
             i1 = (room_id - 1) * 6 + 1
             i2 = i1 + 5
             call shuffle(guess%guess(i1:i2), 6, guess%mask(i1:i2))
         end do
     end subroutine next
+
+    !>
+    !> @brief apply guess to labyrinth
+    !>
+    !> @param[in] guess     - guess_t object
+    !> @param[in] library   - solved labyrinth
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine set_solution(guess, library)
         class(guess_t), intent(in) :: guess
-        type(library_t), target, intent(inout) :: library
+        type(library_t), intent(inout) :: library
         integer :: room_id, door_id, n_rooms, cnt
         n_rooms = size(library%rooms)
         cnt = 1
