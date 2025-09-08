@@ -12,7 +12,7 @@ Team Members
 ------------
 In alphabetical order:
 - [ForNeVeR](https://github.com/ForNeVeR) — [report](https://fornever.me/en/posts/2025-09-08.icfpc-2025.html)
-- [foxtran](https://github.com/foxtran)
+- [foxtran](https://github.com/foxtran) - [report](https://www.linkedin.com/posts/foxtran_icfp-contest-2025-activity-7370933528848556032-HlYX)
 - [gsomix](https://github.com/gsomix)
 - [portnov](https://github.com/portnov)
 
