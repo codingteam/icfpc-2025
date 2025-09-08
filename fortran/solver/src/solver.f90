@@ -3,17 +3,30 @@ module solver_mod
     use task_mod, only: task_t
     implicit none
     private
+
+    !> @brief task solver
     type :: solver_t
-        logical(1) :: inited = .false.
-        type(library_t) :: library
-        type(task_t) :: task
+        logical(1) :: inited = .false. !< was initialised
+        type(library_t) :: library     !< labyrinth description
+        type(task_t) :: task           !< problem / task
     contains
         procedure :: init
         procedure :: solve
         procedure :: submit
     end type solver_t
+
     public :: solver_t
 contains
+
+    !>
+    !> @brief initialise solver_t
+    !>
+    !> @param[in,out] solver - solver_t object
+    !> @param[in]     arg    - task name
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine init(solver, arg)
         use API_mod, only: select, explore
         use plan_mod, only: plan_t
@@ -54,6 +67,15 @@ contains
             end if
         end function generate_plans
     end subroutine init
+
+    !>
+    !> @brief solve task
+    !>
+    !> @param[in,out] solver - solver_t object
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine solve(solver)
         use guess_mod, only: guess_t
         class(solver_t), intent(inout) :: solver
@@ -89,6 +111,15 @@ contains
         if (corr_id < 0) error stop "solution not found"
         call guess(corr_id)%set_solution(solver%library)
     end subroutine solve
+
+    !>
+    !> @brief submit solution
+    !>
+    !> @param[in,out] solver - solver_t object
+    !>
+    !> @author foxtran
+    !> @date   Sep 8, 2025
+    !>
     subroutine submit(solver)
         use solution_mod, only: solution_t
         use API_mod, only: guess
