@@ -97,7 +97,6 @@ contains
         class(guess_t), intent(inout) :: guess
         type(library_t), target, intent(in) :: library
         integer :: n_rooms, room_id, door_id, cnt, room_in
-        integer, allocatable :: rooms(:)
 
         if (guess%inited) return
         guess%inited = .true.
@@ -107,7 +106,6 @@ contains
         guess%max_length = size(guess%library%plans(1)%steps)
         allocate(guess%guess(6*n_rooms), source = -1)
         allocate(guess%mask(6*n_rooms), source = .false.)
-        allocate(rooms(n_rooms), source = 6)
 
         cnt = 1
         do room_id = 1, n_rooms
@@ -116,22 +114,12 @@ contains
                 if (room_in /= -1) then
                     guess%guess(cnt) = room_in
                     guess%mask(cnt) = .true.
-                    rooms(room_in) = rooms(room_in) - 1
                 end if
                 cnt = cnt + 1
             end do
         end do
 
-        room_id = 1
-        do cnt = 1, size(guess%guess)
-            if (rooms(room_id) == 0) room_id = room_id + 1
-            if (.not.guess%mask(cnt)) then
-                guess%guess(cnt) = room_id
-                rooms(room_id) = rooms(room_id) - 1
-            end if
-        end do
-
-        call shuffle(guess%guess, size(guess%guess), guess%mask)
+        call guess%next()
 
     end subroutine guess_init
     subroutine eval(guess)
@@ -149,9 +137,65 @@ contains
         guess%max_length = max_length
     end subroutine eval
     subroutine next(guess)
-        use random_mod, only: shuffle
+        use random_mod, only: shuffle, rand_int
         class(guess_t), intent(inout) :: guess
-        call shuffle(guess%guess, size(guess%guess), guess%mask)
+        integer, allocatable :: rooms(:)
+        integer :: door_id, room_id, n_rooms, cnt
+        integer :: idx, i1, i2
+        integer :: room_in, curr_room
+        logical :: found
+
+        n_rooms = size(guess%library%rooms)
+        allocate(rooms(n_rooms), source = 6)
+
+        do cnt = 1, size(guess%guess)
+            if (.not.guess%mask(cnt)) then
+                guess%guess(cnt) = 0
+            else
+                room_in = guess%guess(cnt)
+                rooms(room_in) = rooms(room_in) - 1
+            end if
+        end do
+
+        do cnt = 1, size(guess%guess)
+            if (guess%guess(cnt) /= 0) cycle
+            curr_room = (cnt - 1) / 6 + 1
+            do
+                room_id = rand_int(1, n_rooms)
+                if (rooms(room_id) > 0) then
+                    rooms(room_id) = rooms(room_id) - 1
+                    exit
+                end if
+            end do
+            guess%guess(cnt) = -room_id
+            if (room_id == curr_room) cycle
+            i1 = (room_id - 1) * 6 + 1
+            i2 = i1 + 5
+            found = .false.
+            do idx = i1, i2
+                if (guess%mask(idx) .and. guess%guess(idx) == curr_room) then
+                    guess%guess(idx) = -guess%guess(idx)
+                    found = .true.
+                    exit
+                end if
+            end do
+            if (.not.found) then
+                do idx = i1, i2
+                    if (guess%guess(idx) == 0) then
+                        guess%guess(idx) = -curr_room
+                        exit
+                    end if
+                end do
+            end if
+        end do
+
+        guess%guess = abs(guess%guess)
+
+        do room_id = 1, n_rooms
+            i1 = (room_id - 1) * 6 + 1
+            i2 = i1 + 5
+            call shuffle(guess%guess(i1:i2), 6, guess%mask(i1:i2))
+        end do
     end subroutine next
     subroutine set_solution(guess, library)
         class(guess_t), intent(in) :: guess
