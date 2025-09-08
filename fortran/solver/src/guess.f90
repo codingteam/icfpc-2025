@@ -23,6 +23,7 @@ module guess_mod
     contains
         procedure :: init => guess_init
         procedure :: eval
+        procedure :: next
         procedure :: set_solution
     end type guess_t
     public :: guess_t
@@ -147,6 +148,11 @@ contains
         guess%mask = library%get_mask()
         guess%max_length = max_length
     end subroutine eval
+    subroutine next(guess)
+        use random_mod, only: shuffle
+        class(guess_t), intent(inout) :: guess
+        call shuffle(guess%guess, size(guess%guess), guess%mask)
+    end subroutine next
     subroutine set_solution(guess, library)
         class(guess_t), intent(in) :: guess
         type(library_t), target, intent(inout) :: library
