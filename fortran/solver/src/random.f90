@@ -24,6 +24,11 @@ module random_mod
     implicit none
     private
 
+    !>
+    !> @brief shuffle array
+    !>
+    !> @details integer(1) and integer(4) arrays are supported
+    !>
     interface shuffle
         module procedure shuffle_i1, shuffle_i4
     end interface shuffle
