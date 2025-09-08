@@ -215,5 +215,4 @@ contains
         end do
         lhs%current_plan = rhs%current_plan
     end subroutine library_t_assignment
-
 end module library_mod
