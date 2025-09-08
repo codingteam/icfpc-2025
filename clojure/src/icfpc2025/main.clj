@@ -31,47 +31,55 @@
 (def room-number-range (range room-count))
 (def door-number-range (range door-in-room-count))
 
-(defn setup-room
-  "General structure here: each door gets its own root conde block, containing a lot of conditions for each sub-door of each other room."
+(defn setup-roomo
+  "General structure here: each door gets its own root block, containing a lot of conditions for each sub-door of each other room."
   [all-rooms room]
   (let [room-index (-> all-rooms (.indexOf room))]
-    (->>
-      (:doors room)
-      (map-indexed
-        (fn [door-index door]
-          (membero (:door door) door-number-range)
-          (membero (:room door) room-number-range)
-          (conde
-            (concat
-              (->>
-                all-rooms
-                (map-indexed
-                  (fn [other-room-index other-room]
-                    (if (= other-room-index room-index)
-                      ; For room looping back to itself, all the doors should be short-circuited.
-                      [
-                        [(== (:room door) other-room-index)
-                         (== (:door door) door-index)]
-                      ]
-                      ; For the other room connected to the current door, generate a list of clauses about possible
-                      ; connections to each of the other room's doors.
-                      (->>
-                        (:doors other-room)
-                        (map-indexed
-                          (fn [other-door-index other-door]
-                            ; If the current door connects to the other room, corresponding door of the other room should
-                            ; connect to here.
+    (and*
+      (->>
+        (:doors room)
+        (map-indexed
+          (fn [door-index door]
+            (and*
+              [
+                (membero (:door door) door-number-range)
+                (membero (:room door) room-number-range)
+                (or*
+                  (->>
+                    all-rooms
+                    (map-indexed
+                      (fn [other-room-index other-room]
+                        (if (= other-room-index room-index)
+                          ; For room looping back to itself, all the doors should be short-circuited.
+                          (conde
                             [(== (:room door) other-room-index)
-                             (== (:door door) other-door-index)
-                             (== (:room other-door) room-index)
-                             (== (:door other-door) door-index)]
+                             (== (:door door) door-index)]
+                          )
+                          ; For the other room connected to the current door, generate a list of clauses about possible
+                          ; connections to each of the other room's doors.
+                          (or*
+                            (->>
+                              (:doors other-room)
+                              (map-indexed
+                                (fn [other-door-index other-door]
+                                  ; If the current door connects to the other room, corresponding door of the other room
+                                  ; should connect to here.
+                                  (and*
+                                    [(== (:room door) other-room-index)
+                                     (== (:door door) other-door-index)
+                                     (== (:room other-door) room-index)
+                                     (== (:door other-door) door-index)]
+                                  )
+                                )
+                              )
+                            )
                           )
                         )
                       )
                     )
                   )
                 )
-              )
+              ]
             )
           )
         )
@@ -85,15 +93,19 @@
     (with-room room0
       (with-room room1
         (let [rooms [room0 room1]]
-          (setup-room rooms room0)
-          (setup-room rooms room1)
+          (conde
+            [
+              (setup-roomo rooms room0)
+              (setup-roomo rooms room1)
 
-          (== rooms-q rooms)
+              ; Now, concrete facts:
+              (== (:doors room0) [{:door 0 :room 0} {:door 1 :room 1}])
+              (== (nth (:doors room1) 0) {:door 0 :room 1})
+              ; let the engine to guess where the door 1 from the room 1 connects to
 
-          ; Now, concrete facts:
-          (== (:doors room0) [{:door 0 :room 0} {:door 1 :room 1}])
-          (== (nth (:doors room1) 0) {:door 0 :room 1})
-          ; let the engine to guess where the door 1 from the room 1 connects to
+              (== rooms-q rooms)
+            ]
+          )
         )
       )
     )
@@ -101,5 +113,5 @@
 )
 
 (defn -main [& args]
-  (println (do-solve))
+  (pprint (do-solve))
 )
