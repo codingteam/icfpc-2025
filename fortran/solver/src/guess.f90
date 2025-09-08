@@ -63,6 +63,7 @@ contains
         allocate(mask(library%n_rooms, 0:5), source = .false.)
         mask = library%mask
         current_room = 0
+        max_length = 0
         do step_id = 1, size(plan%steps)
             next_door = plan%steps(step_id)%door_out
             next_room_type = plan%steps(step_id)%room_in
@@ -73,7 +74,7 @@ contains
             else
                 exit
             end if
-            max_length = min(step_id, max_length)
+            max_length = step_id
         end do
         library%final_mask = library%final_mask .and. mask
     end function execute_plan
