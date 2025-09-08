@@ -9,6 +9,7 @@ module solver_mod
         type(task_t) :: task
     contains
         procedure :: init
+        procedure :: solve
         procedure :: submit
     end type solver_t
     public :: solver_t
@@ -53,6 +54,12 @@ contains
             end if
         end function generate_plans
     end subroutine init
+    subroutine solve(solver)
+        use guess_mod, only: guess_t
+        class(solver_t), intent(inout) :: solver
+        type(guess_t) :: guess
+        call guess%init(solver%library)
+    end subroutine solve
     subroutine submit(solver)
         use solution_mod, only: solution_t
         use API_mod, only: guess

@@ -38,6 +38,7 @@ program icfpc2025solver
             use solver_mod, only: solver_t
             type(solver_t) :: solver
             call solver%init(arg)
+            call solver%solve()
             call solver%submit()
         end block
     end if
